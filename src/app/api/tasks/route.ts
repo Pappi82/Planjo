@@ -113,12 +113,10 @@ export async function POST(request: NextRequest) {
     // Log activity
     await ActivityLog.create({
       userId: session.user.id,
-      date: new Date(),
-      actionType: 'task_created',
+      type: 'task_created',
+      description: `Created task: ${title}`,
       projectId,
-      taskId: task._id,
-      metadata: { taskTitle: title },
-      timestamp: new Date(),
+      metadata: { taskId: task._id.toString(), taskTitle: title },
     });
 
     return NextResponse.json({ task }, { status: 201 });

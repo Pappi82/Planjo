@@ -77,15 +77,14 @@ export async function PUT(
     if (newStatus && newStatus !== oldTask.status) {
       await ActivityLog.create({
         userId: session.user.id,
-        date: new Date(),
-        actionType: 'task_moved',
+        type: 'task_moved',
+        description: `Moved task "${oldTask.title}" from ${oldTask.status} to ${newStatus}`,
         projectId: oldTask.projectId,
-        taskId: oldTask._id,
         metadata: {
+          taskId: oldTask._id.toString(),
           from: oldTask.status,
           to: newStatus,
         },
-        timestamp: new Date(),
       });
     }
 
@@ -93,12 +92,13 @@ export async function PUT(
     if (completedAt && !oldTask.completedAt) {
       await ActivityLog.create({
         userId: session.user.id,
-        date: new Date(),
-        actionType: 'task_completed',
+        type: 'task_completed',
+        description: `Completed task: ${oldTask.title}`,
         projectId: oldTask.projectId,
-        taskId: oldTask._id,
-        metadata: { taskTitle: oldTask.title },
-        timestamp: new Date(),
+        metadata: {
+          taskId: oldTask._id.toString(),
+          taskTitle: oldTask.title
+        },
       });
     }
 

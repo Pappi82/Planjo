@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       KanbanColumn.create({
         projectId: project._id,
         name: col.name,
-        position: col.order,
+        order: col.order,
         color: '#6B7280',
       })
     );
@@ -83,8 +83,8 @@ export async function POST(req: NextRequest) {
     await ActivityLog.create({
       userId: session.user.id,
       projectId: project._id,
-      date: new Date(),
-      actionType: 'project_created',
+      type: 'project_created',
+      description: `Created project: ${name}`,
       metadata: { projectId: project._id.toString(), projectName: name },
     });
 

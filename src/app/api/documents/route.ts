@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
     await ActivityLog.create({
       userId: session.user.id,
       projectId,
-      date: new Date(),
-      actionType: 'document_created',
+      type: 'doc_created',
+      description: `Created document: ${title}`,
       metadata: {
         documentId: document._id.toString(),
         title

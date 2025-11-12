@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
     // Log activity
     await ActivityLog.create({
       userId: session.user.id,
-      date: new Date(date),
-      actionType: 'journal_entry',
+      type: 'journal_entry',
+      description: `Journal entry for ${new Date(date).toLocaleDateString()}`,
       metadata: {
         entryId: entry._id.toString(),
         date: new Date(date).toLocaleDateString()
