@@ -52,7 +52,6 @@ import { Project, ProjectDashboardStat, Task as TaskType, ActivityLog } from '@/
 import { PROJECT_STATUSES, MOOD_OPTIONS_ARRAY } from '@/lib/constants';
 
 type QuickActionKey = 'project' | 'idea' | 'journal' | 'momentum';
-type VelocityPoint = { week: string; value: number };
 
 const activityMeta: Record<
   string,
@@ -410,9 +409,6 @@ export default function DashboardPage() {
           100
       )
     : 0;
-  const velocityTrend: VelocityPoint[] = Object.entries(weeklyVelocity || {})
-    .slice(-5)
-    .map(([week, value]) => ({ week, value: Number(value) }));
 
   return (
     <div className="relative flex min-h-full flex-col gap-10 pb-20">
@@ -504,18 +500,6 @@ export default function DashboardPage() {
             projectLookup={projectLookup}
             onLaunch={launchVibeMode}
             onOpenVibe={openVibeLauncher}
-          />
-          <MomentumSnapshot
-            cadencePercent={cadencePercent}
-            focusRetention={focusRetention}
-            analyticsDays={analytics?.activeDays || 0}
-            latestWeek={latestWeek}
-            peakWeek={peakWeek}
-            trend={velocityTrend}
-            onOpenMomentum={() => {
-              play('action');
-              setActionDialog('momentum');
-            }}
           />
           <ActivityTimeline activities={activities.slice(0, 6)} />
         </div>
@@ -795,10 +779,6 @@ function ProjectConstellation({
           >
             View all
           </Button>
-          <Button onClick={onCreate} className="rounded-full px-5 text-sm">
-            <Plus className="mr-2 h-4 w-4" />
-            New project
-          </Button>
         </div>
       </div>
 
@@ -1031,96 +1011,6 @@ function FocusTaskChip({
           Launch
         </Button>
       </div>
-    </div>
-  );
-}
-
-function MomentumSnapshot({
-  cadencePercent,
-  focusRetention,
-  analyticsDays,
-  latestWeek,
-  peakWeek,
-  trend,
-  onOpenMomentum,
-}: {
-  cadencePercent: number;
-  focusRetention: number;
-  analyticsDays: number;
-  latestWeek: number;
-  peakWeek: number;
-  trend: VelocityPoint[];
-  onOpenMomentum: () => void;
-}) {
-  const safePeak = Math.max(peakWeek, 1);
-
-  return (
-    <section className="relative overflow-hidden rounded-[28px] border border-white/12 bg-gradient-to-br from-[#0f172a]/70 via-[#1f1c3d]/60 to-[#020617]/60 p-6 text-white shadow-[0_20px_50px_rgba(8,11,26,0.55)]">
-      <div className="pointer-events-none absolute inset-0 opacity-60">
-        <div className="absolute -top-20 right-8 h-48 w-48 rounded-full bg-[#6f9eff]/25 blur-[90px]" />
-        <div className="absolute bottom-0 left-0 h-48 w-48 rounded-full bg-[#38f8c7]/20 blur-[90px]" />
-      </div>
-      <div className="relative z-10 space-y-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-[0.7rem] uppercase tracking-[0.35em] text-white/60">Momentum pulse</p>
-            <h3 className="text-xl font-semibold">How you're trending</h3>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onOpenMomentum}
-            className="rounded-full border border-white/20 bg-white/10 px-4 text-xs text-white/75 hover:text-white"
-          >
-            <Activity className="mr-2 h-3.5 w-3.5" />
-            Open pulse
-          </Button>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <MomentumStat label="This week" value={`${latestWeek}`} description="tasks shipped" />
-          <MomentumStat label="Cadence" value={`${cadencePercent}%`} description="of peak velocity" />
-          <MomentumStat label="Focus" value={`${focusRetention}%`} description={`${analyticsDays} active days`} />
-        </div>
-        {trend.length > 0 && (
-          <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Last {trend.length} weeks</p>
-            <div className="mt-4 flex items-end gap-3">
-              {trend.map((point) => {
-                const heightPercent = Math.max(8, Math.min(100, Math.round((point.value / safePeak) * 100)));
-                return (
-                  <div key={`${point.week}-${point.value}`} className="flex flex-1 flex-col items-center gap-2">
-                    <div className="flex h-28 w-full items-end justify-center overflow-hidden rounded-t-[18px] border border-white/12 bg-white/5">
-                      <div
-                        className="w-full rounded-t-[14px] bg-gradient-to-t from-[#ff5c87]/55 via-[#6f9eff]/65 to-[#38f8c7]/80 transition-all duration-500"
-                        style={{ height: `${heightPercent}%` }}
-                      />
-                    </div>
-                    <span className="text-[0.65rem] text-white/55">{point.value}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function MomentumStat({
-  label,
-  value,
-  description,
-}: {
-  label: string;
-  value: string;
-  description: string;
-}) {
-  return (
-    <div className="rounded-[20px] border border-white/12 bg-white/[0.08] p-4 text-white shadow-[0_12px_24px_rgba(15,23,42,0.4)]">
-      <p className="text-[0.7rem] uppercase tracking-[0.35em] text-white/60">{label}</p>
-      <p className="mt-2 text-2xl font-semibold">{value}</p>
-      <p className="text-xs text-white/60">{description}</p>
     </div>
   );
 }
