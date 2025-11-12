@@ -54,16 +54,25 @@ export default function AmbientSoundPlayer() {
   const playerRef = useRef<any>(null);
 
   useEffect(() => {
+    console.log('[AmbientSoundPlayer] Component mounted');
+
     // Set client-side flag
     setIsClient(true);
 
     // Only load YouTube API on client side
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') {
+      console.log('[AmbientSoundPlayer] Window is undefined, skipping YouTube API load');
+      return;
+    }
 
     // Check if script already exists
     const existingScript = document.querySelector('script[src*="youtube.com/iframe_api"]');
-    if (existingScript) return;
+    if (existingScript) {
+      console.log('[AmbientSoundPlayer] YouTube API script already exists');
+      return;
+    }
 
+    console.log('[AmbientSoundPlayer] Loading YouTube API script');
     // Load YouTube IFrame API
     const tag = document.createElement('script');
     tag.src = 'https://www.youtube.com/iframe_api';
@@ -72,7 +81,7 @@ export default function AmbientSoundPlayer() {
 
     // @ts-ignore
     window.onYouTubeIframeAPIReady = () => {
-      console.log('YouTube API ready');
+      console.log('[AmbientSoundPlayer] YouTube API ready');
     };
   }, []);
 

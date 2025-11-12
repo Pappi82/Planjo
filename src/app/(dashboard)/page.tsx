@@ -26,9 +26,13 @@ import { Badge } from '@/components/ui/badge';
 import { usePlanjoSound } from '@/components/providers/PlanjoExperienceProvider';
 
 export default function DashboardPage() {
+  console.log('[DashboardPage] Rendering dashboard page');
+
   const { data: session } = useSession();
   const { projects, isLoading } = useProjects();
   const { play } = usePlanjoSound();
+
+  console.log('[DashboardPage] Session:', !!session, 'Projects:', projects?.length, 'Loading:', isLoading);
 
   const activeProjects = projects.filter((p) => p.status === 'active');
   const focusScore = Math.min(

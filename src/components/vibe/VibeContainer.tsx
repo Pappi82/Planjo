@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ITask } from '@/types';
 import PomodoroTimer from './PomodoroTimer';
 import VibeScratchpad from './VibeScratchpad';
+import AmbientSoundPlayer from './AmbientSoundPlayer';
 import { X, CheckCircle2 } from 'lucide-react';
 
 interface VibeContainerProps {
@@ -15,11 +16,14 @@ interface VibeContainerProps {
 }
 
 export default function VibeContainer({ task, onClose, onComplete }: VibeContainerProps) {
+  console.log('[VibeContainer] Rendering with task:', task?._id);
+
   const [scratchpad, setScratchpad] = useState('');
   const [bgColor, setBgColor] = useState('#02030a');
 
   // Load existing vibe notes when component mounts
   useEffect(() => {
+    console.log('[VibeContainer] Loading vibe notes for task:', task._id);
     if (task.vibeNotes) {
       setScratchpad(task.vibeNotes);
     }
@@ -96,6 +100,11 @@ export default function VibeContainer({ task, onClose, onComplete }: VibeContain
         {/* Pomodoro Timer */}
         <div className="planjo-panel rounded-2xl md:rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-6 md:p-8 backdrop-blur-sm">
           <PomodoroTimer />
+        </div>
+
+        {/* Ambient Sounds */}
+        <div className="planjo-panel rounded-2xl md:rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-4 md:p-6 backdrop-blur-sm">
+          <AmbientSoundPlayer />
         </div>
 
         {/* Scratchpad */}

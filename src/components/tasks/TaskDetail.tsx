@@ -103,8 +103,18 @@ export default function TaskDetail({
   };
 
   const handleEnterVibeMode = () => {
+    if (!task?._id) {
+      console.error('[TaskDetail] Cannot enter vibe mode: task or task._id is missing');
+      return;
+    }
+    console.log('[TaskDetail] Entering vibe mode for task:', task._id.toString());
     router.push(`/vibe/${task._id.toString()}`);
   };
+
+  if (!task) {
+    console.log('[TaskDetail] Task is null, not rendering');
+    return null;
+  }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

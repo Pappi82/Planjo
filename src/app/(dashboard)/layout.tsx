@@ -8,25 +8,34 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  try {
+    console.log('[DashboardLayout] Starting layout render');
+    const session = await getServerSession(authOptions);
+    console.log('[DashboardLayout] Session retrieved:', !!session);
 
-  if (!session) {
-    redirect('/login');
-  }
+    if (!session) {
+      console.log('[DashboardLayout] No session, redirecting to login');
+      redirect('/login');
+    }
 
-  return (
-    <div className="planjo-shell">
-      <aside className="w-[320px] flex-shrink-0">
-        <Sidebar />
-      </aside>
-      <main className="relative flex-1">
-        <div className="planjo-grid" aria-hidden />
-        <div className="relative z-10 flex h-screen flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-8 py-8">
-            {children}
+    console.log('[DashboardLayout] Rendering dashboard layout');
+    return (
+      <div className="planjo-shell">
+        <aside className="w-[320px] flex-shrink-0">
+          <Sidebar />
+        </aside>
+        <main className="relative flex-1">
+          <div className="planjo-grid" aria-hidden />
+          <div className="relative z-10 flex h-screen flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto px-8 py-8">
+              {children}
+            </div>
           </div>
-        </div>
-      </main>
-    </div>
-  );
+        </main>
+      </div>
+    );
+  } catch (error) {
+    console.error('[DashboardLayout] Error in layout:', error);
+    throw error;
+  }
 }
