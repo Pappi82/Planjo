@@ -21,10 +21,7 @@ if (!global.mongoose) {
 }
 
 async function dbConnect(): Promise<typeof mongoose> {
-  console.log('[dbConnect] Attempting to connect to MongoDB');
-
   if (cached.conn) {
-    console.log('[dbConnect] Using cached connection');
     return cached.conn;
   }
 
@@ -32,30 +29,22 @@ async function dbConnect(): Promise<typeof mongoose> {
     const MONGODB_URI = process.env.MONGODB_URI;
 
     if (!MONGODB_URI) {
-      console.error('[dbConnect] MONGODB_URI is not defined');
       throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
     }
 
-    console.log('[dbConnect] Creating new connection promise');
     const opts = {
       bufferCommands: false,
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log('✅ [dbConnect] MongoDB connected successfully');
+      console.log('✅ MongoDB connected successfully');
       return mongoose;
-    }).catch((error) => {
-      console.error('❌ [dbConnect] MongoDB connection failed:', error);
-      throw error;
     });
   }
 
   try {
-    console.log('[dbConnect] Awaiting connection promise');
     cached.conn = await cached.promise;
-    console.log('[dbConnect] Connection established');
   } catch (e) {
-    console.error('[dbConnect] Error awaiting connection:', e);
     cached.promise = null;
     throw e;
   }

@@ -2,28 +2,43 @@
 
 ## Error Details
 - **Error**: White screen with Server Components render error (500 Internal Server Error)
-- **Console Error**: `Uncaught Error: An error occurred in the Server Components render`
-- **Root Cause**: Next.js 16 was trying to statically generate authenticated routes at build time
+- **Console Error**: `[next-auth][error][NO_SECRET] Please define a secret in production`
+- **Root Cause**: `NEXTAUTH_SECRET` environment variable was not set in Vercel
 - **Status**: ✅ FIXED
 
 ## The Problem
 
-Next.js 16 was attempting to pre-render dashboard routes at build time, but these routes use `getServerSession()` which requires access to request headers. This caused the error:
+NextAuth requires a `NEXTAUTH_SECRET` environment variable to be set in production for session encryption and security. The error logs showed:
 
 ```
-Dynamic server usage: Route / couldn't be rendered statically because it used `headers`
+[next-auth][error][NO_SECRET]
+https://next-auth.js.org/errors#no_secret Please define a `secret` in production.
+Error [MissingSecretError]: Please define a `secret` in production.
 ```
 
 ## The Solution
 
-Added `export const dynamic = 'force-dynamic';` to the dashboard layout to force dynamic rendering:
+1. **Added `NEXTAUTH_SECRET` to Vercel Environment Variables**
+   - Generated a secure secret using: `openssl rand -base64 32`
+   - Added it to Vercel Dashboard → Settings → Environment Variables
 
-```typescript
-// src/app/(dashboard)/layout.tsx
-export const dynamic = 'force-dynamic';
+2. **Added `export const dynamic = 'force-dynamic';` to dashboard layout**
+   - This ensures authenticated routes are rendered on-demand (server-side)
+   - Prevents Next.js from trying to pre-render them at build time
+
+3. **Added validation in auth.ts**
+   - Added a check to throw a clear error if `NEXTAUTH_SECRET` is missing in production
+
+## Required Environment Variables in Vercel
+
+Make sure these are set in Vercel Dashboard → Settings → Environment Variables:
+
 ```
-
-This tells Next.js to always render these routes on-demand (server-side) instead of trying to pre-render them at build time.
+✅ NEXTAUTH_SECRET = <generated-secret>
+✅ NEXTAUTH_URL = https://your-app.vercel.app
+✅ MONGODB_URI = mongodb+srv://...
+✅ ENCRYPTION_KEY = <your-encryption-key>
+```
 
 ## Changes Made for Debugging
 

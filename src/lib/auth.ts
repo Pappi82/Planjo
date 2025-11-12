@@ -4,10 +4,6 @@ import bcrypt from 'bcryptjs';
 import dbConnect from './db';
 import User from '@/models/User';
 
-console.log('[auth.ts] Initializing auth options');
-console.log('[auth.ts] NEXTAUTH_SECRET present:', !!process.env.NEXTAUTH_SECRET);
-console.log('[auth.ts] MONGODB_URI present:', !!process.env.MONGODB_URI);
-
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -67,4 +63,9 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
+
+// Validate that secret is present in production
+if (!authOptions.secret && process.env.NODE_ENV === 'production') {
+  throw new Error('NEXTAUTH_SECRET environment variable must be defined in production');
+}
 
