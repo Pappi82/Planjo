@@ -122,10 +122,15 @@ export async function PUT(
     );
 
     return NextResponse.json({ task });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Update task error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    });
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: error.message || 'Internal server error' },
       { status: 500 }
     );
   }

@@ -23,6 +23,7 @@ interface KanbanBoardProps {
   onTaskMove: (taskId: string, newStatus: string, newPosition: number) => void;
   onTaskClick: (task: ITask) => void;
   onTaskCreate: (columnName: string) => void;
+  onColumnRename?: (columnId: string, newName: string) => Promise<void>;
 }
 
 export default function KanbanBoard({
@@ -31,6 +32,7 @@ export default function KanbanBoard({
   onTaskMove,
   onTaskClick,
   onTaskCreate,
+  onColumnRename,
 }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<ITask | null>(null);
   const { play } = usePlanjoSound();
@@ -109,6 +111,7 @@ export default function KanbanBoard({
               play('action');
               onTaskCreate(column.name);
             }}
+            onColumnRename={onColumnRename}
           />
         ))}
       </div>

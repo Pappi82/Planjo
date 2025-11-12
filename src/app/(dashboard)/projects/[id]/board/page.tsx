@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTasks, useColumns } from '@/hooks/useTasks';
@@ -17,12 +17,17 @@ export default function BoardPage() {
   const projectId = params.id as string;
 
   const { tasks, mutate: mutateTasks } = useTasks(projectId);
-  const { columns } = useColumns(projectId);
+  const { columns, mutate: mutateColumns } = useColumns(projectId);
 
-  const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createColumnName, setCreateColumnName] = useState('');
   const [newTaskTitle, setNewTaskTitle] = useState('');
+
+  // Find the selected task from the tasks array
+  const selectedTask = selectedTaskId
+    ? tasks.find((t) => t._id.toString() === selectedTaskId) || null
+    : null;
 
   const handleTaskMove = async (taskId: string, newStatus: string, newPosition: number) => {
     // Optimistic update: immediately update the UI
@@ -95,31 +100,86 @@ export default function BoardPage() {
   };
 
   const handleUpdateTask = async (taskId: string, data: any) => {
-    await fetch(`/api/tasks/${taskId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    mutateTasks();
+    try {
+      console.log('Updating task:', taskId, 'with data:', data);
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Update task failed:', errorData);
+        throw new Error(errorData.error || 'Failed to update task');
+      }
+
+      await mutateTasks();
+    } catch (error) {
+      console.error('Error updating task:', error);
+      throw error;
+    }
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
-    mutateTasks();
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete task');
+      }
+
+      await mutateTasks();
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      throw error;
+    }
   };
 
   const handleAddSubtask = async (parentId: string, title: string) => {
-    await fetch('/api/tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        projectId,
-        title,
-        parentTaskId: parentId,
-        status: 'To Do',
-      }),
-    });
-    mutateTasks();
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          title,
+          parentTaskId: parentId,
+          status: 'To Do',
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to add subtask');
+      }
+
+      await mutateTasks();
+    } catch (error) {
+      console.error('Error adding subtask:', error);
+      throw error;
+    }
+  };
+
+  const handleColumnRename = async (columnId: string, newName: string) => {
+    try {
+      const response = await fetch(`/api/columns/${columnId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to rename column');
+      }
+
+      // Refresh both columns and tasks since task statuses are updated
+      await Promise.all([mutateColumns(), mutateTasks()]);
+    } catch (error) {
+      console.error('Error renaming column:', error);
+      throw error;
+    }
   };
 
   return (
@@ -165,15 +225,16 @@ export default function BoardPage() {
           columns={columns}
           tasks={tasks}
           onTaskMove={handleTaskMove}
-          onTaskClick={setSelectedTask}
+          onTaskClick={(task) => setSelectedTaskId(task._id.toString())}
           onTaskCreate={handleTaskCreate}
+          onColumnRename={handleColumnRename}
         />
       </div>
 
       <TaskDetail
         task={selectedTask}
         open={!!selectedTask}
-        onClose={() => setSelectedTask(null)}
+        onClose={() => setSelectedTaskId(null)}
         onUpdate={handleUpdateTask}
         onDelete={handleDeleteTask}
         onAddSubtask={handleAddSubtask}

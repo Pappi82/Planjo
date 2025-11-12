@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ITask } from '@/types';
 import { Trash2 } from 'lucide-react';
 
@@ -12,10 +14,33 @@ interface SubtaskListProps {
 }
 
 export default function SubtaskList({ subtasks, onUpdate, onDelete }: SubtaskListProps) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
+
   const handleToggle = (subtask: ITask) => {
     onUpdate(subtask._id.toString(), {
-      completedAt: subtask.completedAt ? null : new Date(),
+      completedAt: subtask.completedAt ? null : new Date().toISOString(),
     });
+  };
+
+  const handleStartEdit = (subtask: ITask) => {
+    setEditingId(subtask._id.toString());
+    setEditingTitle(subtask.title);
+  };
+
+  const handleSaveEdit = async (subtaskId: string) => {
+    if (editingTitle.trim()) {
+      await onUpdate(subtaskId, { title: editingTitle.trim() });
+    }
+    setEditingId(null);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, subtaskId: string) => {
+    if (e.key === 'Enter') {
+      handleSaveEdit(subtaskId);
+    } else if (e.key === 'Escape') {
+      setEditingId(null);
+    }
   };
 
   return (
@@ -29,13 +54,25 @@ export default function SubtaskList({ subtasks, onUpdate, onDelete }: SubtaskLis
             checked={!!subtask.completedAt}
             onCheckedChange={() => handleToggle(subtask)}
           />
-          <span
-            className={`flex-1 ${
-              subtask.completedAt ? 'line-through text-muted-foreground' : ''
-            }`}
-          >
-            {subtask.title}
-          </span>
+          {editingId === subtask._id.toString() ? (
+            <Input
+              value={editingTitle}
+              onChange={(e) => setEditingTitle(e.target.value)}
+              onBlur={() => handleSaveEdit(subtask._id.toString())}
+              onKeyDown={(e) => handleKeyDown(e, subtask._id.toString())}
+              autoFocus
+              className="flex-1 h-8 bg-white/10 border-white/20"
+            />
+          ) : (
+            <span
+              className={`flex-1 cursor-pointer ${
+                subtask.completedAt ? 'line-through text-muted-foreground' : ''
+              }`}
+              onClick={() => handleStartEdit(subtask)}
+            >
+              {subtask.title}
+            </span>
+          )}
           <Button
             variant="ghost"
             size="icon"

@@ -29,7 +29,7 @@ export default function VibeModePage() {
     await fetch(`/api/tasks/${taskId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ completedAt: new Date() }),
+      body: JSON.stringify({ completedAt: new Date().toISOString() }),
     });
     mutate();
     router.back();

@@ -97,6 +97,10 @@ const TaskSchema = new Schema<ITask>(
     completedAt: {
       type: Date,
     },
+    vibeNotes: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

@@ -93,6 +93,7 @@ export interface ITask extends Document {
   estimatedHours?: number;
   actualHours?: number;
   completedAt?: Date;
+  vibeNotes?: string;
   createdAt: Date;
   updatedAt: Date;
 }

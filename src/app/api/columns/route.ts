@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     await dbConnect();
 
-    const columns = await KanbanColumn.find({ projectId }).sort({ position: 1 });
+    const columns = await KanbanColumn.find({ projectId }).sort({ order: 1 });
 
     return NextResponse.json({ columns });
   } catch (error) {

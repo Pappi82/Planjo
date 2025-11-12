@@ -38,23 +38,16 @@ export function Sidebar() {
   return (
     <div className="planjo-panel m-4 flex h-[calc(100vh-2rem)] flex-col border border-white/10 bg-sidebar/80 px-0 py-0 backdrop-blur-2xl">
       <div className="border-b border-white/5 px-6 py-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="planjo-pill text-[0.6rem] text-white/70">Planjo</p>
-            <h1 className="mt-2 text-2xl font-semibold text-white">Flow Console</h1>
-            <p className="text-sm text-white/50">Stay in an addictive shipping loop</p>
-          </div>
-          <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white">
-            <SparklesIcon />
-          </div>
+        <div className="flex items-center justify-center">
+          <PlanjoLogo />
         </div>
-        <div className="mt-5 grid grid-cols-2 gap-3 text-xs text-white/60">
-          <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-3">
+        <div className="mt-5 space-y-3 text-xs text-white/60">
+          <div className="rounded-2xl border border-white/5 bg-white/5 px-5 py-4">
             <p className="uppercase tracking-[0.3em] text-[0.55rem] text-white/50">Streak</p>
             <p className="mt-2 text-2xl font-semibold text-white">04</p>
             <p className="text-[0.7rem] text-white/50">days alive</p>
           </div>
-          <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-3">
+          <div className="rounded-2xl border border-white/5 bg-white/5 px-5 py-4">
             <p className="uppercase tracking-[0.3em] text-[0.55rem] text-white/50">Energy</p>
             <p className="mt-2 text-2xl font-semibold text-[#38f8c7]">Calm</p>
             <p className="text-[0.7rem] text-white/50">no overload</p>
@@ -152,5 +145,84 @@ function SparklesIcon() {
         opacity={0.5}
       />
     </svg>
+  );
+}
+
+function PlanjoLogo() {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative">
+        {/* Abstract flow/momentum logo */}
+        <svg
+          className="h-16 w-16"
+          viewBox="0 0 64 64"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {/* Gradient definitions */}
+          <defs>
+            <linearGradient id="planjo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#8B5CF6" />
+              <stop offset="50%" stopColor="#38f8c7" />
+              <stop offset="100%" stopColor="#ff5c87" />
+            </linearGradient>
+            <linearGradient id="planjo-gradient-2" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#ff5c87" />
+              <stop offset="50%" stopColor="#38f8c7" />
+              <stop offset="100%" stopColor="#8B5CF6" />
+            </linearGradient>
+          </defs>
+
+          {/* Background circle with subtle glow */}
+          <circle
+            cx="32"
+            cy="32"
+            r="30"
+            fill="url(#planjo-gradient)"
+            opacity="0.08"
+          />
+
+          {/* Three flowing curves representing momentum and flow */}
+          <path
+            d="M 16 24 Q 32 16 48 24"
+            stroke="url(#planjo-gradient)"
+            strokeWidth="3"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.9"
+          />
+          <path
+            d="M 16 32 Q 32 24 48 32"
+            stroke="url(#planjo-gradient)"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <path
+            d="M 16 40 Q 32 32 48 40"
+            stroke="url(#planjo-gradient-2)"
+            strokeWidth="3"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.9"
+          />
+
+          {/* Accent dots at the end representing progress points */}
+          <circle cx="48" cy="24" r="2" fill="#8B5CF6" opacity="0.8" />
+          <circle cx="48" cy="32" r="2.5" fill="#38f8c7" />
+          <circle cx="48" cy="40" r="2" fill="#ff5c87" opacity="0.8" />
+        </svg>
+      </div>
+
+      {/* Text logo */}
+      <div className="flex flex-col">
+        <h1 className="text-3xl font-bold text-white tracking-tight">
+          Planjo
+        </h1>
+        <p className="text-[0.65rem] uppercase tracking-[0.3em] text-white/40 mt-0.5">
+          Flow OS
+        </p>
+      </div>
+    </div>
   );
 }

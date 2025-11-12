@@ -63,22 +63,49 @@ export default function PomodoroTimer({ onComplete }: PomodoroTimerProps) {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="text-center">
-        <div className="text-6xl font-bold font-mono text-white">
-          {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+    <div className="space-y-4 md:space-y-6">
+      <div className="text-center space-y-2 md:space-y-3">
+        <p className="text-xs md:text-sm uppercase tracking-[0.3em] text-white/50">{mode} Session</p>
+        <div className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold font-mono text-white tracking-tight">
+          {String(minutes).padStart(2, '0')}
+          <span className="text-white/40">:</span>
+          {String(seconds).padStart(2, '0')}
         </div>
-        <p className="text-white/70 mt-2 capitalize">{mode} Time</p>
       </div>
 
-      <Progress value={progress} className="h-2" />
+      <div className="space-y-2">
+        <Progress value={progress} className="h-2 md:h-3 bg-white/10" />
+        <div className="flex justify-between text-xs text-white/40">
+          <span>{mode === 'work' ? '25:00' : '05:00'}</span>
+          <span>{Math.round(progress)}%</span>
+        </div>
+      </div>
 
-      <div className="flex gap-2 justify-center">
-        <Button size="lg" onClick={toggleTimer} className="bg-white text-black hover:bg-white/90">
-          {isActive ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+      <div className="flex gap-2 md:gap-3 justify-center pt-2">
+        <Button
+          size="lg"
+          onClick={toggleTimer}
+          className="bg-gradient-to-r from-[#8B5CF6] to-[#38f8c7] hover:opacity-90 text-white font-semibold px-6 md:px-8 rounded-2xl h-12 md:h-14 text-sm md:text-base"
+        >
+          {isActive ? (
+            <>
+              <Pause className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+              Pause
+            </>
+          ) : (
+            <>
+              <Play className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+              Start
+            </>
+          )}
         </Button>
-        <Button size="lg" variant="outline" onClick={resetTimer} className="border-white/20 text-white hover:bg-white/10">
-          <RotateCcw className="h-5 w-5" />
+        <Button
+          size="lg"
+          variant="outline"
+          onClick={resetTimer}
+          className="border-white/20 text-white hover:bg-white/10 rounded-2xl h-12 md:h-14 px-4 md:px-6"
+        >
+          <RotateCcw className="h-4 w-4 md:h-5 md:w-5" />
         </Button>
       </div>
     </div>
