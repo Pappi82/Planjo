@@ -23,7 +23,6 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -53,6 +52,7 @@ import { Project, ProjectDashboardStat, Task as TaskType, ActivityLog } from '@/
 import { PROJECT_STATUSES, MOOD_OPTIONS_ARRAY } from '@/lib/constants';
 
 type QuickActionKey = 'project' | 'idea' | 'journal' | 'momentum';
+type VelocityPoint = { week: string; value: number };
 
 const activityMeta: Record<
   string,
@@ -71,6 +71,14 @@ const priorityColors: Record<string, string> = {
   high: '#f9a826',
   medium: '#6f9eff',
   low: '#38f8c7',
+};
+
+const commandAccents: Record<QuickActionKey | 'analytics', string> = {
+  project: '#6f9eff',
+  idea: '#ff5c87',
+  journal: '#4ecbff',
+  momentum: '#38f8c7',
+  analytics: '#f9a826',
 };
 
 export default function DashboardPage() {
@@ -384,193 +392,143 @@ export default function DashboardPage() {
     return null;
   };
 
+  const now = new Date();
+  const greeting = getTimeGreeting(now);
+  const firstName = session?.user?.name?.split(' ')[0] || 'maker';
+  const activeProjects = projects.filter((project) => project.status === 'active').length;
+  const workspaceSummary =
+    projects.length === 0
+      ? 'You have a blank canvas — capture a project, drop an idea, or log how you feel to start the momentum.'
+      : `You’re orbiting ${projects.length} projects (${activeProjects} active) with ${latestWeek} tasks shipped last week. Keep the cadence flowing.`;
+  const shippingRate = featuredProjects.length
+    ? Math.round(
+        (featuredProjects.reduce((total, project) => {
+          const completion = statsMap[project._id.toString()]?.completionRate || 0;
+          return total + completion;
+        }, 0) /
+          featuredProjects.length) *
+          100
+      )
+    : 0;
+  const velocityTrend: VelocityPoint[] = Object.entries(weeklyVelocity || {})
+    .slice(-5)
+    .map(([week, value]) => ({ week, value: Number(value) }));
+
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <section className="planjo-panel flex items-center justify-between gap-6 px-8 py-5">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold text-white">
-            Welcome back, {session?.user?.name || 'maker'}
-          </h1>
-          <p className="text-sm text-white/60">
-            Your workspace at a glance
-          </p>
+    <div className="relative flex min-h-full flex-col gap-10 pb-20">
+      <div className="pointer-events-none absolute inset-x-0 -top-40 z-0 h-[420px]">
+        <div className="absolute left-1/2 top-0 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-gradient-to-br from-[#6f9eff]/40 via-[#ff5c87]/25 to-transparent blur-[140px]" />
+        <div className="absolute left-[12%] top-24 h-72 w-72 rounded-full bg-gradient-to-br from-[#38f8c7]/30 via-transparent to-transparent blur-[120px]" />
+      </div>
+
+      <section className="relative z-10 overflow-hidden rounded-[32px] border border-white/15 bg-slate-950/70 p-8 shadow-[0_30px_80px_rgba(2,6,23,0.65)] backdrop-blur-3xl">
+        <div className="pointer-events-none absolute inset-0 opacity-70">
+          <div className="absolute -top-24 right-0 h-64 w-64 rounded-full bg-[#6f9eff]/30 blur-[120px]" />
+          <div className="absolute bottom-0 left-0 h-72 w-72 rounded-full bg-[#ff5c87]/20 blur-[110px]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(148,163,255,0.08),_transparent_60%)]" />
         </div>
-        <div className="flex gap-3">
-          <Button
-            onClick={() => {
+
+        <div className="relative z-10 flex flex-col gap-8">
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <div className="max-w-2xl space-y-3">
+              <p className="text-[0.75rem] uppercase tracking-[0.4em] text-white/60">Mission Control</p>
+              <h1 className="text-3xl font-semibold text-white md:text-4xl">
+                {greeting}, {firstName}
+              </h1>
+              <p className="text-sm leading-relaxed text-white/70">
+                {workspaceSummary}
+              </p>
+            </div>
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <Button
+                onClick={() => {
+                  play('action');
+                  setActionDialog('project');
+                }}
+                className="h-12 rounded-full px-6 text-base shadow-[0_10px_30px_rgba(111,158,255,0.3)]"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Launch project
+              </Button>
+              <Button
+                variant="outline"
+                onClick={openVibeLauncher}
+                className="h-12 rounded-full border-white/30 bg-white/5 px-6 text-base text-white/90 hover:bg-white/10"
+              >
+                <FocusIcon className="mr-2 h-4 w-4" />
+                Enter focus mode
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            <OrbitMetric label="Cadence" value={cadencePercent} accent="#38f8c7" subtitle="vs your best week" />
+            <OrbitMetric label="Focus retention" value={focusRetention} accent="#8c6ff7" subtitle="active days this month" />
+            <OrbitMetric label="Shipping rate" value={shippingRate} accent="#f9a826" subtitle="avg completion across featured projects" />
+          </div>
+
+          <FlowStateBeacon
+            flowState={flowState}
+            flowAccent={flowAccent}
+            cadencePercent={cadencePercent}
+            latestWeek={latestWeek}
+            streakCurrent={streakCurrent}
+            streakMax={streakMax}
+          />
+
+          <QuickCommandGrid
+            actions={quickActions}
+            onSelect={(key) => {
               play('action');
-              setActionDialog('project');
+              setActionDialog(key);
             }}
-          >
-            <Plus className="h-4 w-4" />
-            New project
-          </Button>
-          <Button variant="outline" onClick={openVibeLauncher}>
-            <FocusIcon className="h-4 w-4" />
-            Focus
-          </Button>
+            onAnalytics={() => router.push('/analytics')}
+          />
         </div>
       </section>
 
-      <div className="flex-1 overflow-hidden px-8 pb-8">
-        <div className="grid h-full grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Left: Projects (2/3 width) */}
-          <div className="lg:col-span-2">
-            <Card className="flex h-full flex-col border-white/10 bg-white/5">
-              <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
-                <CardTitle className="text-xl text-white">Active Projects</CardTitle>
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="sm"
-                  className="text-white/70 hover:text-white"
-                >
-                  <Link href="/projects">View all</Link>
-                </Button>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-hidden">
-                {featuredProjects.length === 0 ? (
-                  <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-white/10">
-                    <div className="space-y-3 text-center">
-                      <FolderKanban className="mx-auto h-12 w-12 text-white/20" />
-                      <p className="text-sm text-white/60">No projects yet</p>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          play('action');
-                          setActionDialog('project');
-                        }}
-                      >
-                        <Plus className="h-3 w-3" />
-                        Create your first project
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid h-full auto-rows-fr grid-cols-2 gap-4">
-                    {featuredProjects.map((project) => (
-                      <ProjectTile
-                        key={project._id.toString()}
-                        project={project}
-                        stat={statsMap[project._id.toString()]}
-                      />
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+      <section className="relative z-10 grid gap-8 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
+        <ProjectConstellation
+          projects={featuredProjects}
+          statsMap={statsMap}
+          onCreate={() => {
+            play('action');
+            setActionDialog('project');
+          }}
+          onViewAll={() => router.push('/projects')}
+        />
 
-          {/* Right: Stats & Activity (1/3 width) */}
-          <div className="flex flex-col gap-6 overflow-hidden">
-            {/* Momentum Stats */}
-            <Card className="border-white/10 bg-white/5">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg text-white">Your Flow</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-white/70">Streak</span>
-                    <div className="flex items-center gap-2">
-                      <Flame className="h-4 w-4 text-[#ff5c87]" />
-                      <span className="font-semibold text-white">
-                        {streakCurrent} {streakCurrent === 1 ? 'day' : 'days'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-white/70">Weekly velocity</span>
-                    <span className="font-semibold text-white">{latestWeek} tasks</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-white/70">Flow state</span>
-                    <Badge
-                      style={{ color: flowAccent, borderColor: `${flowAccent}55` }}
-                      className="bg-transparent"
-                    >
-                      {flowState}
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-white/60">Cadence</span>
-                    <span className="text-white/80">{cadencePercent}%</span>
-                  </div>
-                  <Progress value={cadencePercent} className="h-2" />
-                </div>
-
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                >
-                  <Link href="/analytics">
-                    <BarChart3 className="h-3 w-3" />
-                    Full analytics
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card className="border-white/10 bg-white/5">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg text-white">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {quickActions.map((action) => (
-                  <button
-                    key={action.key}
-                    onClick={() => {
-                      play('action');
-                      setActionDialog(action.key);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-white/80 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
-                  >
-                    <action.icon className="h-4 w-4" />
-                    <span className="font-medium">{action.label}</span>
-                  </button>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Recent Activity */}
-            <Card className="flex flex-1 flex-col overflow-hidden border-white/10 bg-white/5">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg text-white">Recent</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto">
-                {activities.length === 0 ? (
-                  <div className="flex h-full items-center justify-center">
-                    <p className="text-xs text-white/60">No activity yet</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {activities.slice(0, 4).map((activity) => (
-                      <ActivityRow key={activity._id?.toString?.() || activity.description} activity={activity} />
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+        <div className="flex flex-col gap-8">
+          <FocusCapsule
+            tasks={focusTasks}
+            projectLookup={projectLookup}
+            onLaunch={launchVibeMode}
+            onOpenVibe={openVibeLauncher}
+          />
+          <MomentumSnapshot
+            cadencePercent={cadencePercent}
+            focusRetention={focusRetention}
+            analyticsDays={analytics?.activeDays || 0}
+            latestWeek={latestWeek}
+            peakWeek={peakWeek}
+            trend={velocityTrend}
+            onOpenMomentum={() => {
+              play('action');
+              setActionDialog('momentum');
+            }}
+          />
+          <ActivityTimeline activities={activities.slice(0, 6)} />
         </div>
-      </div>
+      </section>
 
       <Dialog open={!!actionDialog} onOpenChange={(open) => (!open ? closeActionDialog() : null)}>
-        <DialogContent className={actionDialog === 'project' ? 'max-h-[90vh] max-w-3xl overflow-y-auto' : 'max-w-lg'}>
+        <DialogContent className={actionDialog === 'project' ? 'max-h-[90vh] max-w-3xl overflow-y-auto rounded-[28px] border-white/10 bg-slate-950/80 backdrop-blur-2xl' : 'max-w-2xl rounded-[24px] border-white/10 bg-slate-950/80 backdrop-blur-2xl'}>
           {renderDialogContent()}
         </DialogContent>
       </Dialog>
 
       <Dialog open={vibeDialogOpen} onOpenChange={setVibeDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl rounded-[28px] border-white/10 bg-slate-950/85 backdrop-blur-2xl">
           <DialogHeader>
             <DialogTitle>Pick a task for Vibe Mode</DialogTitle>
           </DialogHeader>
@@ -581,7 +539,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               focusTasks.map((task) => (
-                <FocusTaskRow
+                <FocusTaskChip
                   key={task._id.toString()}
                   task={task}
                   projectTitle={projectLookup[task.projectId?.toString()]?.title}
@@ -597,93 +555,448 @@ export default function DashboardPage() {
 }
 
 function MomentumMetric({ label, value, icon: Icon }: { label: string; value: number; icon: LucideIcon }) {
+  const safeValue = Math.max(0, Math.min(100, Math.round(value)));
+
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white">
+    <div className="rounded-2xl border border-white/12 bg-white/[0.04] p-4 text-white shadow-[0_12px_24px_rgba(15,23,42,0.45)]">
       <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-[0.3em] text-white/50">{label}</p>
+        <p className="text-xs uppercase tracking-[0.35em] text-white/60">{label}</p>
         <Icon className="h-4 w-4 text-white/50" />
       </div>
-      <p className="mt-3 text-3xl font-semibold">{value}%</p>
-      <Progress value={value} className="mt-3" />
+      <p className="mt-3 text-3xl font-semibold">{safeValue}%</p>
+      <Progress value={safeValue} className="mt-3 h-1.5" />
     </div>
   );
 }
 
-function ProjectTile({
+function OrbitMetric({
+  label,
+  value,
+  accent,
+  subtitle,
+}: {
+  label: string;
+  value: number;
+  accent: string;
+  subtitle: string;
+}) {
+  const safeValue = Math.max(0, Math.min(100, Math.round(value)));
+  const arc = safeValue * 3.6;
+
+  return (
+    <div className="group relative overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.04] p-6 text-white shadow-[0_18px_40px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:border-white/40 hover:bg-white/[0.08]">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-60 transition-opacity duration-500 group-hover:opacity-90"
+        style={{ background: `radial-gradient(circle at top, ${accent}22 0%, transparent 60%)` }}
+      />
+      <div className="relative z-10 flex items-center gap-6">
+        <div className="relative h-24 w-24">
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: `conic-gradient(${accent} ${arc}deg, rgba(255,255,255,0.08) ${arc}deg)`,
+            }}
+          />
+          <div className="absolute inset-[18%] rounded-full bg-slate-950/80 backdrop-blur">
+            <div className="flex h-full flex-col items-center justify-center">
+              <span className="text-2xl font-semibold">{safeValue}</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-white/60">%</span>
+            </div>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-[0.4em] text-white/50">{label}</p>
+          <p className="text-sm text-white/70">{subtitle}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FlowStateBeacon({
+  flowState,
+  flowAccent,
+  cadencePercent,
+  latestWeek,
+  streakCurrent,
+  streakMax,
+}: {
+  flowState: string;
+  flowAccent: string;
+  cadencePercent: number;
+  latestWeek: number;
+  streakCurrent: number;
+  streakMax: number;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-6 rounded-[24px] border border-white/12 bg-white/[0.05] px-6 py-5 text-white shadow-[0_16px_32px_rgba(15,23,42,0.35)]">
+      <div className="flex items-center gap-4">
+        <span
+          className="flex h-12 w-12 items-center justify-center rounded-full border text-white"
+          style={{
+            borderColor: `${flowAccent}55`,
+            backgroundColor: `${flowAccent}15`,
+            color: flowAccent,
+          }}
+        >
+          <Flame className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="text-xs uppercase tracking-[0.35em] text-white/60">Flow status</p>
+          <p className="text-lg font-semibold">{flowState}</p>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-6 text-sm text-white/70">
+        <span>Cadence at {cadencePercent}% of your peak.</span>
+        <span>
+          Last week shipped <span className="font-semibold text-white">{latestWeek}</span> tasks.
+        </span>
+        <span>
+          Streak {streakCurrent}d
+          {streakMax ? <span className="text-white/50"> • peak {streakMax}d</span> : null}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function QuickCommandGrid({
+  actions,
+  onSelect,
+  onAnalytics,
+}: {
+  actions: { key: QuickActionKey; label: string; icon: LucideIcon }[];
+  onSelect: (key: QuickActionKey) => void;
+  onAnalytics: () => void;
+}) {
+  return (
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      {actions.map((action) => {
+        const accent = commandAccents[action.key];
+        return (
+          <button
+            key={action.key}
+            onClick={() => onSelect(action.key)}
+            className="group relative overflow-hidden rounded-[20px] border border-white/12 bg-white/[0.05] px-5 py-4 text-left text-white shadow-[0_18px_36px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:border-white/40 hover:bg-white/[0.08]"
+          >
+            <div
+              className="pointer-events-none absolute inset-0 opacity-50 transition-opacity duration-500 group-hover:opacity-90"
+              style={{ background: `linear-gradient(135deg, ${accent}22 0%, transparent 65%)` }}
+            />
+            <div className="relative z-10 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span
+                  className="flex h-10 w-10 items-center justify-center rounded-2xl border text-white/80"
+                  style={{
+                    borderColor: `${accent}55`,
+                    backgroundColor: `${accent}1a`,
+                    color: accent,
+                  }}
+                >
+                  <action.icon className="h-4 w-4" />
+                </span>
+                <span className="text-sm font-medium">{action.label}</span>
+              </div>
+              <span className="text-sm text-white/50">↗</span>
+            </div>
+          </button>
+        );
+      })}
+      <button
+        onClick={onAnalytics}
+        className="group relative overflow-hidden rounded-[20px] border border-white/12 bg-white/[0.05] px-5 py-4 text-left text-white shadow-[0_18px_36px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:border-white/40 hover:bg-white/[0.08]"
+      >
+        <div
+          className="pointer-events-none absolute inset-0 opacity-50 transition-opacity duration-500 group-hover:opacity-90"
+          style={{ background: `linear-gradient(135deg, ${commandAccents.analytics}22 0%, transparent 65%)` }}
+        />
+        <div className="relative z-10 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span
+              className="flex h-10 w-10 items-center justify-center rounded-2xl border"
+              style={{
+                borderColor: `${commandAccents.analytics}55`,
+                backgroundColor: `${commandAccents.analytics}1a`,
+                color: commandAccents.analytics,
+              }}
+            >
+              <BarChart3 className="h-4 w-4" />
+            </span>
+            <span className="text-sm font-medium">Deep analytics</span>
+          </div>
+          <span className="text-sm text-white/50">↗</span>
+        </div>
+      </button>
+    </div>
+  );
+}
+
+function ProjectConstellation({
+  projects,
+  statsMap,
+  onCreate,
+  onViewAll,
+}: {
+  projects: Project[];
+  statsMap: Record<string, ProjectDashboardStat>;
+  onCreate: () => void;
+  onViewAll: () => void;
+}) {
+  if (projects.length === 0) {
+    return (
+      <section className="relative overflow-hidden rounded-[32px] border border-dashed border-white/20 bg-white/[0.03] p-8 text-center text-white shadow-[0_24px_48px_rgba(15,23,42,0.5)]">
+        <div className="pointer-events-none absolute inset-0 opacity-70">
+          <div className="absolute -top-24 right-10 h-60 w-60 rounded-full bg-[#6f9eff]/20 blur-[120px]" />
+        </div>
+        <div className="relative z-10 flex flex-col items-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/15 bg-white/5">
+            <FolderKanban className="h-7 w-7 text-white/70" />
+          </div>
+          <h2 className="text-2xl font-semibold">Your project constellation is empty</h2>
+          <p className="max-w-md text-sm text-white/60">
+            Launch a project to anchor your ideas, then watch this dashboard light up with progress, focus, and momentum.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button onClick={onCreate} className="rounded-full px-6">
+              <Plus className="mr-2 h-4 w-4" />
+              Launch project
+            </Button>
+            <Button
+              variant="outline"
+              onClick={onViewAll}
+              className="rounded-full border-white/30 bg-white/5 text-white/80 hover:bg-white/10"
+            >
+              Explore workspace
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const [primary, ...rest] = projects;
+
+  return (
+    <section className="relative overflow-hidden rounded-[32px] border border-white/12 bg-gradient-to-br from-white/[0.08] via-slate-900/60 to-slate-950/80 p-8 text-white shadow-[0_26px_60px_rgba(15,23,42,0.55)]">
+      <div className="pointer-events-none absolute inset-0 opacity-70">
+        <div className="absolute -top-28 left-12 h-72 w-72 rounded-full bg-[#38f8c7]/20 blur-[140px]" />
+        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-[#ff5c87]/15 blur-[140px]" />
+      </div>
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-[0.7rem] uppercase tracking-[0.35em] text-white/60">Project nebula</p>
+          <h2 className="text-2xl font-semibold">Featured work</h2>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Button
+            variant="ghost"
+            onClick={onViewAll}
+            className="rounded-full border border-white/25 bg-white/5 px-5 text-sm text-white/80 hover:text-white"
+          >
+            View all
+          </Button>
+          <Button onClick={onCreate} className="rounded-full px-5 text-sm">
+            <Plus className="mr-2 h-4 w-4" />
+            New project
+          </Button>
+        </div>
+      </div>
+
+      <div className="relative z-10 mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <ProjectPrimaryCard project={primary} stat={statsMap[primary._id.toString()]} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          {rest.length === 0 ? (
+            <div className="col-span-full rounded-2xl border border-dashed border-white/20 bg-white/[0.02] p-6 text-sm text-white/60">
+              Rotate in another project or flag a backlog to fill the constellation.
+            </div>
+          ) : (
+            rest.map((project) => (
+              <ProjectSatelliteCard
+                key={project._id.toString()}
+                project={project}
+                stat={statsMap[project._id.toString()]}
+              />
+            ))
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProjectPrimaryCard({
   project,
   stat,
 }: {
   project: Project;
   stat?: ProjectDashboardStat;
 }) {
+  const accent = project.colorTheme || '#6f9eff';
   const statusInfo = PROJECT_STATUSES[project.status as keyof typeof PROJECT_STATUSES];
-  const completion = stat ? Math.round(stat.completionRate * 100) : 0;
-  const accent = project.colorTheme || '#8c6ff7';
+  const completion = stat ? Math.round((stat.completionRate || 0) * 100) : 0;
+  const nextDue = stat?.nextDueDate ? new Date(stat.nextDueDate) : null;
+  const dueText = nextDue ? `Next due ${formatDistanceToNow(nextDue, { addSuffix: true })}` : 'No due dates';
+  const overdue = stat?.overdueTasks || 0;
 
   return (
     <Link
       href={`/projects/${project._id.toString()}/board`}
-      className="group flex flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-4 text-left text-white transition hover:border-white/30 hover:bg-white/10"
-      style={{
-        borderColor: `${accent}33`,
-        background: `linear-gradient(135deg, ${accent}0d, transparent)`,
-      }}
+      className="group relative flex h-full flex-col overflow-hidden rounded-[28px] border border-white/15 bg-white/[0.05] p-6 text-left text-white shadow-[0_24px_48px_rgba(15,23,42,0.5)] transition hover:-translate-y-1 hover:border-white/40 hover:bg-white/[0.1]"
+      style={{ borderColor: `${accent}33` }}
     >
-      <div className="space-y-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 space-y-1">
-            <p className="text-base font-semibold text-white line-clamp-1">
-              {project.title}
-            </p>
-            <p className="text-xs text-white/60 line-clamp-2">
-              {project.description || 'No description yet.'}
-            </p>
-          </div>
+      <div
+        className="pointer-events-none absolute inset-0 opacity-60 transition-opacity duration-500 group-hover:opacity-90"
+        style={{ background: `linear-gradient(135deg, ${accent}1f 0%, transparent 70%)` }}
+      />
+      <div className="relative z-10 flex flex-1 flex-col justify-between gap-6">
+        <div className="space-y-4">
           <Badge
             style={{ color: accent, borderColor: `${accent}55` }}
-            className="shrink-0 bg-transparent text-[0.65rem]"
+            className="bg-transparent text-[0.65rem] uppercase tracking-[0.35em]"
           >
             {statusInfo?.label || '—'}
           </Badge>
+          <div>
+            <h3 className="text-2xl font-semibold">{project.title}</h3>
+            <p className="mt-2 text-sm text-white/70">
+              {project.description || 'Sketch the story for this project to guide your next sprint.'}
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className="mt-4 space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-white/60">
-            {stat ? `${stat.completedTasks}/${stat.totalTasks} tasks` : 'No tasks yet'}
-          </span>
-          <span className="font-medium text-white">{completion}%</span>
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-white/70">
+            <span>{stat ? `${stat.completedTasks}/${stat.totalTasks} tasks` : 'No tasks yet'}</span>
+            {stat && stat.upcomingTasks > 0 ? <span>• {stat.upcomingTasks} upcoming</span> : null}
+            {overdue > 0 ? <span className="text-[#ff5c87]">{overdue} overdue</span> : null}
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs text-white/70">
+              <span>{dueText}</span>
+              <span className="text-white">{completion}%</span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-white/15">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${completion}%`, background: accent }}
+              />
+            </div>
+          </div>
         </div>
-        <Progress value={completion} className="h-1.5" />
       </div>
     </Link>
   );
 }
 
-function ActivityRow({ activity }: { activity: ActivityLog }) {
-  const meta = activityMeta[activity.type] || activityMeta.task_created;
-  const timestamp = activity.createdAt
-    ? formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })
-    : '';
+function ProjectSatelliteCard({
+  project,
+  stat,
+}: {
+  project: Project;
+  stat?: ProjectDashboardStat;
+}) {
+  const accent = project.colorTheme || '#8c6ff7';
+  const statusInfo = PROJECT_STATUSES[project.status as keyof typeof PROJECT_STATUSES];
+  const completion = stat ? Math.round((stat.completionRate || 0) * 100) : 0;
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-white/80">
+    <Link
+      href={`/projects/${project._id.toString()}/board`}
+      className="group relative flex flex-col gap-4 overflow-hidden rounded-[22px] border border-white/12 bg-white/[0.04] p-5 text-left text-white shadow-[0_18px_36px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:border-white/40 hover:bg-white/[0.08]"
+      style={{ borderColor: `${accent}2a` }}
+    >
       <div
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-        style={{ backgroundColor: `${meta.accent}22`, color: meta.accent }}
-      >
-        <meta.icon className="h-3.5 w-3.5" />
+        className="pointer-events-none absolute inset-0 opacity-60 transition-opacity duration-500 group-hover:opacity-90"
+        style={{ background: `linear-gradient(135deg, ${accent}18 0%, transparent 75%)` }}
+      />
+      <div className="relative z-10 space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-sm font-semibold text-white line-clamp-2">{project.title}</p>
+          <Badge
+            style={{ color: accent, borderColor: `${accent}55` }}
+            className="bg-transparent text-[0.6rem]"
+          >
+            {statusInfo?.label || '—'}
+          </Badge>
+        </div>
+        <p className="text-xs text-white/60 line-clamp-3">
+          {project.description || 'Document the mission and next moves to keep this project in motion.'}
+        </p>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-[0.7rem] text-white/60">
+            <span>{stat ? `${stat.completedTasks}/${stat.totalTasks} tasks` : 'No tasks yet'}</span>
+            <span className="text-white/80">{completion}%</span>
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/12">
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${completion}%`, background: accent }}
+            />
+          </div>
+        </div>
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium text-white line-clamp-1">{activity.description}</p>
-        <p className="text-[0.65rem] text-white/50">{timestamp}</p>
-      </div>
-    </div>
+    </Link>
   );
 }
 
-function FocusTaskRow({
+function FocusCapsule({
+  tasks,
+  projectLookup,
+  onLaunch,
+  onOpenVibe,
+}: {
+  tasks: TaskType[];
+  projectLookup: Record<string, Project>;
+  onLaunch: (taskId: string) => void;
+  onOpenVibe: () => void;
+}) {
+  return (
+    <section className="relative overflow-hidden rounded-[28px] border border-white/12 bg-white/[0.04] p-6 text-white shadow-[0_20px_40px_rgba(15,23,42,0.45)]">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-[0.7rem] uppercase tracking-[0.35em] text-white/60">Focus capsule</p>
+          <h3 className="text-xl font-semibold">Channel your next flow session</h3>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onOpenVibe}
+          className="rounded-full border border-white/25 bg-white/5 px-4 text-xs text-white/75 hover:text-white"
+        >
+          <FocusIcon className="mr-2 h-3.5 w-3.5" />
+          Vibe launcher
+        </Button>
+      </div>
+
+      {tasks.length === 0 ? (
+        <div className="mt-6 rounded-2xl border border-dashed border-white/20 bg-white/[0.02] p-8 text-center text-white/60">
+          Drop a focus task inside any project to activate Vibe Mode.
+        </div>
+      ) : (
+        <div className="mt-6 space-y-3">
+          {tasks.map((task) => {
+            const projectId =
+              typeof task.projectId === 'string'
+                ? task.projectId
+                : task.projectId?.toString?.();
+            const projectTitle = projectId ? projectLookup[projectId]?.title : undefined;
+
+            return (
+              <FocusTaskChip
+                key={task._id.toString()}
+                task={task}
+                projectTitle={projectTitle}
+                onLaunch={() => onLaunch(task._id.toString())}
+              />
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function FocusTaskChip({
   task,
   projectTitle,
   onLaunch,
@@ -693,22 +1006,206 @@ function FocusTaskRow({
   onLaunch: () => void;
 }) {
   const dueDate = task.dueDate ? new Date(task.dueDate) : null;
-  const priorityColor = priorityColors[task.priority] || '#8c6ff7';
+  const priorityColor = priorityColors[task.priority] || '#6f9eff';
 
   return (
-    <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white/80">
-      <div className="flex-1">
-        <p className="text-sm font-semibold text-white">{task.title}</p>
-        <div className="flex flex-wrap gap-3 text-xs text-white/60">
-          <span>{projectTitle || 'Untitled project'}</span>
-          {dueDate && <span>Due {dueDate.toLocaleDateString()}</span>}
-          <span style={{ color: priorityColor }}>Priority: {task.priority}</span>
+    <div className="group relative overflow-hidden rounded-2xl border border-white/12 bg-white/[0.03] p-4 transition hover:-translate-y-[2px] hover:border-white/40 hover:bg-white/[0.08]">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{ background: `linear-gradient(135deg, ${priorityColor}22 0%, transparent 70%)` }}
+      />
+      <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-white">{task.title}</p>
+          <div className="mt-2 flex flex-wrap gap-3 text-xs text-white/60">
+            <span>{projectTitle || 'Untitled project'}</span>
+            {dueDate && <span>Due {dueDate.toLocaleDateString()}</span>}
+            <span style={{ color: priorityColor }}>Priority {task.priority}</span>
+          </div>
         </div>
+        <Button
+          onClick={onLaunch}
+          className="self-start rounded-full border border-white/25 bg-white/10 px-4 text-xs text-white hover:bg-white/20 sm:self-auto"
+        >
+          <FocusIcon className="mr-2 h-3.5 w-3.5" />
+          Launch
+        </Button>
       </div>
-      <Button onClick={onLaunch}>
-        <FocusIcon className="mr-2 h-4 w-4" />
-        Enter vibe
-      </Button>
     </div>
   );
+}
+
+function MomentumSnapshot({
+  cadencePercent,
+  focusRetention,
+  analyticsDays,
+  latestWeek,
+  peakWeek,
+  trend,
+  onOpenMomentum,
+}: {
+  cadencePercent: number;
+  focusRetention: number;
+  analyticsDays: number;
+  latestWeek: number;
+  peakWeek: number;
+  trend: VelocityPoint[];
+  onOpenMomentum: () => void;
+}) {
+  const safePeak = Math.max(peakWeek, 1);
+
+  return (
+    <section className="relative overflow-hidden rounded-[28px] border border-white/12 bg-gradient-to-br from-[#0f172a]/70 via-[#1f1c3d]/60 to-[#020617]/60 p-6 text-white shadow-[0_20px_50px_rgba(8,11,26,0.55)]">
+      <div className="pointer-events-none absolute inset-0 opacity-60">
+        <div className="absolute -top-20 right-8 h-48 w-48 rounded-full bg-[#6f9eff]/25 blur-[90px]" />
+        <div className="absolute bottom-0 left-0 h-48 w-48 rounded-full bg-[#38f8c7]/20 blur-[90px]" />
+      </div>
+      <div className="relative z-10 space-y-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[0.7rem] uppercase tracking-[0.35em] text-white/60">Momentum pulse</p>
+            <h3 className="text-xl font-semibold">How you're trending</h3>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenMomentum}
+            className="rounded-full border border-white/20 bg-white/10 px-4 text-xs text-white/75 hover:text-white"
+          >
+            <Activity className="mr-2 h-3.5 w-3.5" />
+            Open pulse
+          </Button>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <MomentumStat label="This week" value={`${latestWeek}`} description="tasks shipped" />
+          <MomentumStat label="Cadence" value={`${cadencePercent}%`} description="of peak velocity" />
+          <MomentumStat label="Focus" value={`${focusRetention}%`} description={`${analyticsDays} active days`} />
+        </div>
+        {trend.length > 0 && (
+          <div>
+            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Last {trend.length} weeks</p>
+            <div className="mt-4 flex items-end gap-3">
+              {trend.map((point) => {
+                const heightPercent = Math.max(8, Math.min(100, Math.round((point.value / safePeak) * 100)));
+                return (
+                  <div key={`${point.week}-${point.value}`} className="flex flex-1 flex-col items-center gap-2">
+                    <div className="flex h-28 w-full items-end justify-center overflow-hidden rounded-t-[18px] border border-white/12 bg-white/5">
+                      <div
+                        className="w-full rounded-t-[14px] bg-gradient-to-t from-[#ff5c87]/55 via-[#6f9eff]/65 to-[#38f8c7]/80 transition-all duration-500"
+                        style={{ height: `${heightPercent}%` }}
+                      />
+                    </div>
+                    <span className="text-[0.65rem] text-white/55">{point.value}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function MomentumStat({
+  label,
+  value,
+  description,
+}: {
+  label: string;
+  value: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-[20px] border border-white/12 bg-white/[0.08] p-4 text-white shadow-[0_12px_24px_rgba(15,23,42,0.4)]">
+      <p className="text-[0.7rem] uppercase tracking-[0.35em] text-white/60">{label}</p>
+      <p className="mt-2 text-2xl font-semibold">{value}</p>
+      <p className="text-xs text-white/60">{description}</p>
+    </div>
+  );
+}
+
+function ActivityTimeline({ activities }: { activities: ActivityLog[] }) {
+  if (activities.length === 0) {
+    return (
+      <section className="relative overflow-hidden rounded-[28px] border border-white/12 bg-white/[0.04] p-6 text-center text-white/70 shadow-[0_20px_40px_rgba(15,23,42,0.45)]">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/12 bg-white/5">
+          <Activity className="h-7 w-7 text-white/55" />
+        </div>
+        <h3 className="mt-4 text-lg font-semibold text-white">Quiet orbit</h3>
+        <p className="mt-2 text-xs text-white/60">
+          Capture a task, log a journal entry, or launch a project to wake up the feed.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="relative overflow-hidden rounded-[28px] border border-white/12 bg-white/[0.04] p-6 text-white shadow-[0_20px_40px_rgba(15,23,42,0.45)]">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[0.7rem] uppercase tracking-[0.35em] text-white/60">Signal stream</p>
+          <h3 className="text-xl font-semibold">Recent activity</h3>
+        </div>
+        <Link href="/analytics" className="text-xs uppercase tracking-[0.35em] text-white/50 hover:text-white">
+          See all
+        </Link>
+      </div>
+      <div className="mt-6 space-y-4">
+        {activities.map((activity, index) => (
+          <ActivityTimelineItem
+            key={activity._id?.toString?.() || `${activity.description}-${index}`}
+            activity={activity}
+            isLast={index === activities.length - 1}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ActivityTimelineItem({
+  activity,
+  isLast,
+}: {
+  activity: ActivityLog;
+  isLast: boolean;
+}) {
+  const meta = activityMeta[activity.type] || activityMeta.task_created;
+  const timestamp = activity.createdAt
+    ? formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })
+    : '';
+
+  return (
+    <div className="relative pl-10">
+      {!isLast && <span className="absolute left-[11px] top-4 h-full w-px bg-white/12" />}
+      <span
+        className="absolute left-[6px] top-3 h-3 w-3 rounded-full border"
+        style={{ backgroundColor: `${meta.accent}33`, borderColor: `${meta.accent}55` }}
+      />
+      <div className="relative z-10 rounded-2xl border border-white/12 bg-white/[0.05] px-4 py-3 transition hover:-translate-y-[1px] hover:border-white/30 hover:bg-white/[0.08]">
+        <p className="text-sm font-medium text-white">{activity.description}</p>
+        <div className="mt-2 flex items-center gap-2 text-xs text-white/60">
+          <meta.icon className="h-3.5 w-3.5" />
+          <span>{meta.label}</span>
+          {timestamp && (
+            <>
+              <span>•</span>
+              <span>{timestamp}</span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function getTimeGreeting(date: Date) {
+  const hour = date.getHours();
+
+  if (hour < 5) return 'Midnight momentum';
+  if (hour < 11) return 'Morning launch';
+  if (hour < 16) return 'Midday flow';
+  if (hour < 20) return 'Twilight push';
+  return 'Evening reset';
 }
