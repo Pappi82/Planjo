@@ -12,15 +12,10 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Activity,
-  Flame,
-  ArrowUpRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { usePlanjoSound } from '@/components/providers/PlanjoExperienceProvider';
-import { useAnalytics } from '@/hooks/useAnalytics';
 
 const navigation = [
   { name: 'Command Deck', href: '/', icon: LayoutDashboard, hint: 'Overview' },
@@ -35,29 +30,6 @@ const bottomNavigation = [{ name: 'Settings', href: '/settings', icon: Settings 
 export function Sidebar() {
   const pathname = usePathname();
   const { play } = usePlanjoSound();
-  const { analytics } = useAnalytics({ days: 21 });
-
-  const streakCurrent = analytics?.streak?.current ?? 0;
-  const streakMax = analytics?.streak?.max ?? 0;
-  const streakPercent =
-    streakMax > 0
-      ? Math.min(100, Math.round((streakCurrent / streakMax) * 100))
-      : Math.min(100, streakCurrent * 12);
-
-  const tasksCompleted = analytics?.tasksCompleted ?? 0;
-  const activeDays = analytics?.activeDays ?? 0;
-  const energyVelocity =
-    activeDays > 0 ? tasksCompleted / activeDays : tasksCompleted;
-  const energyPercent = Math.min(100, Math.round((energyVelocity / 4) * 100));
-  const energyLabel =
-    energyPercent >= 75 ? 'Charged' : energyPercent >= 45 ? 'In flow' : 'Resetting';
-  const energyColor =
-    energyPercent >= 75 ? '#38f8c7' : energyPercent >= 45 ? '#8c6ff7' : '#ff5c87';
-  const energyHint =
-    tasksCompleted > 0
-      ? `${tasksCompleted} ships / ${activeDays || 1} days`
-      : 'Syncing signals';
-
   const handleSignOut = () => {
     play('action');
     signOut({ callbackUrl: '/login' });
@@ -69,64 +41,13 @@ export function Sidebar() {
         <div className="flex items-center justify-center">
           <PlanjoLogo />
         </div>
-        <div className="mt-5 space-y-3 text-xs text-white/60">
-          <Link
-            href="/analytics"
-            onClick={() => play('nav')}
-            className="group block rounded-2xl border border-white/5 bg-white/5 px-5 py-4 transition hover:border-white/30 hover:bg-white/10"
-          >
-            <div className="flex items-center justify-between gap-3 text-white">
-              <div>
-                <p className="uppercase tracking-[0.3em] text-[0.55rem] text-white/50">Streak</p>
-                <p className="mt-2 text-2xl font-semibold">
-                  {analytics ? streakCurrent.toString().padStart(2, '0') : '—'}
-                  <span className="ml-1 text-sm font-normal text-white/50">days</span>
-                </p>
-                <p className="text-[0.7rem] text-white/50">
-                  {streakMax > 0 ? `${streakMax}d best` : 'Log today to start'}
-                </p>
-              </div>
-              <div className="flex flex-col items-end gap-1 text-right">
-                <Activity className="h-5 w-5 text-[#38f8c7]" />
-                <div className="flex items-center gap-1 text-xs font-semibold text-white/60 group-hover:text-white">
-                  {streakMax > 0 ? `${streakPercent}%` : 'new'}
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </div>
-              </div>
-            </div>
-            <Progress value={streakPercent} className="mt-3" />
-          </Link>
-          <Link
-            href="/analytics"
-            onClick={() => play('nav')}
-            className="group block rounded-2xl border border-white/5 bg-white/5 px-5 py-4 transition hover:border-white/30 hover:bg-white/10"
-          >
-            <div className="flex items-center justify-between gap-3 text-white">
-              <div>
-                <p className="uppercase tracking-[0.3em] text-[0.55rem] text-white/50">Energy</p>
-                <p
-                  className="mt-2 text-2xl font-semibold"
-                  style={{ color: energyColor }}
-                >
-                  {energyLabel}
-                </p>
-                <p className="text-[0.7rem] text-white/50">{energyHint}</p>
-              </div>
-              <div className="flex flex-col items-end gap-1 text-right">
-                <Flame className="h-5 w-5" style={{ color: energyColor }} />
-                <span className="text-xs font-semibold text-white/60 group-hover:text-white">
-                  {energyPercent}%
-                </span>
-              </div>
-            </div>
-            <Progress value={energyPercent} className="mt-3" />
-          </Link>
-        </div>
+        <p className="mt-4 text-center text-xs uppercase tracking-[0.25em] text-white/40">
+          Flow OS
+        </p>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-4 py-4">
-        <p className="px-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/40">Navigation</p>
-        <div className="mt-3 space-y-2">
+        <div className="space-y-2">
           {navigation.map((item) => {
             const isActive =
               pathname === item.href || pathname?.startsWith(item.href + '/');
@@ -149,10 +70,7 @@ export function Sidebar() {
                       isActive ? 'text-[#8c6ff7]' : 'text-white/60 group-hover:text-white'
                     )}
                   />
-                  <div>
-                    <p className="text-sm font-semibold">{item.name}</p>
-                    <span className="text-xs text-white/40">{item.hint}</span>
-                  </div>
+                  <p className="text-sm font-semibold">{item.name}</p>
                 </div>
                 <div
                   className={cn(

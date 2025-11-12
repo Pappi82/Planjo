@@ -16,7 +16,6 @@ import {
   Target,
   Clock,
   CheckCircle2,
-  Calendar,
   NotebookPen,
   FileText,
   ListChecks,
@@ -50,7 +49,7 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import { useRecentActivity } from '@/hooks/useRecentActivity';
 import { useFocusTasks } from '@/hooks/useFocusTasks';
 import { usePlanjoSound } from '@/components/providers/PlanjoExperienceProvider';
-import { Project, ProjectDashboardStat, Task as TaskType } from '@/types';
+import { Project, ProjectDashboardStat, Task as TaskType, ActivityLog } from '@/types';
 import { PROJECT_STATUSES, MOOD_OPTIONS_ARRAY } from '@/lib/constants';
 
 type QuickActionKey = 'project' | 'idea' | 'journal' | 'momentum';
@@ -78,14 +77,9 @@ export default function DashboardPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const { play } = usePlanjoSound();
-  const {
-    projects,
-    stats,
-    isLoading: projectsLoading,
-    mutate: refreshProjects,
-  } = useProjects({ withStats: true });
+  const { projects, stats, mutate: refreshProjects } = useProjects({ withStats: true });
   const { analytics } = useAnalytics({ days: 30 });
-  const { activities, mutate: refreshActivity } = useRecentActivity(6);
+  const { activities, mutate: refreshActivity } = useRecentActivity(5);
   const { tasks: focusTasks, mutate: refreshFocus } = useFocusTasks(5);
 
   const [actionDialog, setActionDialog] = useState<QuickActionKey | null>(null);
@@ -98,7 +92,6 @@ export default function DashboardPage() {
   const [isSavingIdea, setIsSavingIdea] = useState(false);
   const [isSavingJournal, setIsSavingJournal] = useState(false);
 
-  const activeProjects = projects.filter((project) => project.status === 'active');
   const statsMap = useMemo(() => {
     const map: Record<string, ProjectDashboardStat> = {};
     stats.forEach((stat) => {
@@ -115,7 +108,7 @@ export default function DashboardPage() {
     return map;
   }, [projects]);
 
-  const prioritizedProjects = useMemo(() => {
+  const featuredProjects = useMemo(() => {
     return [...projects]
       .sort((a, b) => {
         if (a.status === 'active' && b.status !== 'active') return -1;
@@ -124,18 +117,8 @@ export default function DashboardPage() {
         const bRate = statsMap[b._id.toString()]?.completionRate || 0;
         return bRate - aRate;
       })
-      .slice(0, 3);
+      .slice(0, 6);
   }, [projects, statsMap]);
-
-  const totalTasks = stats.reduce((sum, stat) => sum + stat.totalTasks, 0);
-  const completedTasks = stats.reduce(
-    (sum, stat) => sum + stat.completedTasks,
-    0
-  );
-  const focusScore =
-    totalTasks > 0
-      ? Math.round((completedTasks / totalTasks) * 100)
-      : Math.min(100, activeProjects.length * 20);
 
   const weeklyVelocity = analytics?.weeklyVelocity || {};
   const weeklyValues = Object.values(weeklyVelocity);
@@ -402,95 +385,145 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <section className="planjo-panel relative overflow-hidden p-8">
-        <div className="absolute inset-0 opacity-30">
-          <div className="planjo-grid" />
+    <div className="flex h-screen flex-col overflow-hidden">
+      <section className="planjo-panel flex items-center justify-between gap-6 px-8 py-5">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold text-white">
+            Welcome back, {session?.user?.name || 'maker'}
+          </h1>
+          <p className="text-sm text-white/60">
+            Your workspace at a glance
+          </p>
         </div>
-        <div className="relative z-10 grid gap-8 lg:grid-cols-[1.25fr_0.75fr]">
-          <div className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h1 className="text-4xl font-semibold text-white">
-                  Hey {session?.user?.name || 'maker'}
-                </h1>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  onClick={() => {
-                    play('action');
-                    setActionDialog('project');
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                  Launch project
-                </Button>
-                <Button variant="outline" onClick={openVibeLauncher}>
-                  <FocusIcon className="h-4 w-4" />
-                  Vibe mode
-                </Button>
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <StatTile label="Projects" value={projectsLoading ? '—' : projects.length.toString().padStart(2, '0')} />
-              <StatTile label="Active" value={projectsLoading ? '—' : activeProjects.length.toString().padStart(2, '0')} accent="#38f8c7" />
-              <StatTile label="Focus" value={`${focusScore}%`} accent="#8c6ff7" />
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-white/50">Momentum flow</p>
-                <h3 className="mt-2 text-xl font-semibold text-white">Flow dial</h3>
-              </div>
-              <Badge style={{ color: flowAccent, borderColor: `${flowAccent}55` }} className="bg-transparent">
-                {flowState}
-              </Badge>
-            </div>
-            <div className="mt-6 space-y-4">
-              <MomentumRow label="Weekly cadence" value={cadencePercent} />
-              <MomentumRow label="Focus retention" value={focusRetention} />
-              <div className="rounded-2xl border border-white/5 bg-white/5 p-4 text-sm text-white/70">
-                {latestWeek > 0
-                  ? `${latestWeek} tickets closed last week. Keep the chain alive.`
-                  : 'No ships logged yet. A single win starts the streak.'}
-              </div>
-            </div>
-          </div>
+        <div className="flex gap-3">
+          <Button
+            onClick={() => {
+              play('action');
+              setActionDialog('project');
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            New project
+          </Button>
+          <Button variant="outline" onClick={openVibeLauncher}>
+            <FocusIcon className="h-4 w-4" />
+            Focus
+          </Button>
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
-        <Card className="border-white/10 bg-white/5 p-0">
-          <CardHeader className="px-6 pt-6">
-            <CardTitle className="text-white">Project intelligence</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 px-6 pb-6">
-            {prioritizedProjects.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-white/10 p-8 text-center text-white/60">
-                No projects yet. Spin one up to prime the loop.
-              </div>
-            ) : (
-              prioritizedProjects.map((project) => (
-                <ProjectInsightCard
-                  key={project._id.toString()}
-                  project={project}
-                  stat={statsMap[project._id.toString()]}
-                />
-              ))
-            )}
-          </CardContent>
-        </Card>
+      <div className="flex-1 overflow-hidden px-8 pb-8">
+        <div className="grid h-full grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Left: Projects (2/3 width) */}
+          <div className="lg:col-span-2">
+            <Card className="flex h-full flex-col border-white/10 bg-white/5">
+              <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
+                <CardTitle className="text-xl text-white">Active Projects</CardTitle>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="text-white/70 hover:text-white"
+                >
+                  <Link href="/projects">View all</Link>
+                </Button>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-hidden">
+                {featuredProjects.length === 0 ? (
+                  <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-white/10">
+                    <div className="space-y-3 text-center">
+                      <FolderKanban className="mx-auto h-12 w-12 text-white/20" />
+                      <p className="text-sm text-white/60">No projects yet</p>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          play('action');
+                          setActionDialog('project');
+                        }}
+                      >
+                        <Plus className="h-3 w-3" />
+                        Create your first project
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid h-full auto-rows-fr grid-cols-2 gap-4">
+                    {featuredProjects.map((project) => (
+                      <ProjectTile
+                        key={project._id.toString()}
+                        project={project}
+                        stat={statsMap[project._id.toString()]}
+                      />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
-        <div className="space-y-6">
-          <Card className="border-white/10 bg-white/5 p-0">
-            <CardHeader className="px-6 pt-6">
-              <CardTitle className="text-white">Quick actions</CardTitle>
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="grid gap-3 md:grid-cols-2">
+          {/* Right: Stats & Activity (1/3 width) */}
+          <div className="flex flex-col gap-6 overflow-hidden">
+            {/* Momentum Stats */}
+            <Card className="border-white/10 bg-white/5">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg text-white">Your Flow</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-white/70">Streak</span>
+                    <div className="flex items-center gap-2">
+                      <Flame className="h-4 w-4 text-[#ff5c87]" />
+                      <span className="font-semibold text-white">
+                        {streakCurrent} {streakCurrent === 1 ? 'day' : 'days'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-white/70">Weekly velocity</span>
+                    <span className="font-semibold text-white">{latestWeek} tasks</span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-white/70">Flow state</span>
+                    <Badge
+                      style={{ color: flowAccent, borderColor: `${flowAccent}55` }}
+                      className="bg-transparent"
+                    >
+                      {flowState}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-white/60">Cadence</span>
+                    <span className="text-white/80">{cadencePercent}%</span>
+                  </div>
+                  <Progress value={cadencePercent} className="h-2" />
+                </div>
+
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  <Link href="/analytics">
+                    <BarChart3 className="h-3 w-3" />
+                    Full analytics
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card className="border-white/10 bg-white/5">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg text-white">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
                 {quickActions.map((action) => (
                   <button
                     key={action.key}
@@ -498,42 +531,37 @@ export default function DashboardPage() {
                       play('action');
                       setActionDialog(action.key);
                     }}
-                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-left text-white/80 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
+                    className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-white/80 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
                   >
-                    <div className="flex items-center gap-3">
-                      <action.icon className="h-4 w-4" />
-                      <span className="font-semibold">{action.label}</span>
-                    </div>
-                    <Plus className="h-4 w-4 opacity-60" />
+                    <action.icon className="h-4 w-4" />
+                    <span className="font-medium">{action.label}</span>
                   </button>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card className="border-white/10 bg-white/5 p-0">
-            <CardHeader className="px-6 pt-6">
-              <CardTitle className="text-white">Recent activity</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 px-6 pb-6">
-              {activities.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-white/60">
-                  Activity will populate as you create tasks, notes, and journal entries.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {activities.map((activity) => (
-                    <ActivityRow key={activity._id?.toString?.() || activity.description} activity={activity} />
-                  ))}
-                </div>
-              )}
-              <Button asChild variant="ghost" className="w-full text-white/70 hover:text-white">
-                <Link href="/analytics">Open full timeline</Link>
-              </Button>
-            </CardContent>
-          </Card>
+            {/* Recent Activity */}
+            <Card className="flex flex-1 flex-col overflow-hidden border-white/10 bg-white/5">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg text-white">Recent</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-y-auto">
+                {activities.length === 0 ? (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-xs text-white/60">No activity yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {activities.slice(0, 4).map((activity) => (
+                      <ActivityRow key={activity._id?.toString?.() || activity.description} activity={activity} />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </section>
+      </div>
 
       <Dialog open={!!actionDialog} onOpenChange={(open) => (!open ? closeActionDialog() : null)}>
         <DialogContent className={actionDialog === 'project' ? 'max-h-[90vh] max-w-3xl overflow-y-auto' : 'max-w-lg'}>
@@ -568,29 +596,6 @@ export default function DashboardPage() {
   );
 }
 
-function StatTile({ label, value, accent }: { label: string; value: string; accent?: string }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <p className="text-xs uppercase tracking-[0.3em] text-white/50">{label}</p>
-      <p className="mt-3 text-3xl font-semibold text-white" style={accent ? { color: accent } : undefined}>
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function MomentumRow({ label, value }: { label: string; value: number }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between text-xs text-white/60">
-        <span>{label}</span>
-        <span>{value}%</span>
-      </div>
-      <Progress value={value} className="mt-2" />
-    </div>
-  );
-}
-
 function MomentumMetric({ label, value, icon: Icon }: { label: string; value: number; icon: LucideIcon }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white">
@@ -604,7 +609,7 @@ function MomentumMetric({ label, value, icon: Icon }: { label: string; value: nu
   );
 }
 
-function ProjectInsightCard({
+function ProjectTile({
   project,
   stat,
 }: {
@@ -613,83 +618,66 @@ function ProjectInsightCard({
 }) {
   const statusInfo = PROJECT_STATUSES[project.status as keyof typeof PROJECT_STATUSES];
   const completion = stat ? Math.round(stat.completionRate * 100) : 0;
-  const nextDueDate = stat?.nextDueDate ? new Date(stat.nextDueDate) : null;
-  const daysToTarget = stat?.daysToTarget;
-  const timelineLabel =
-    typeof daysToTarget === 'number'
-      ? daysToTarget > 0
-        ? `${daysToTarget}d to target`
-        : `${Math.abs(daysToTarget)}d past due`
-      : 'No target';
-  const scheduleLabel =
-    stat?.scheduleDelta == null
-      ? 'No timeline'
-      : stat.scheduleDelta >= 0
-        ? 'Ahead'
-        : 'Behind';
-  const scheduleColor =
-    stat?.scheduleDelta == null
-      ? 'text-white/50'
-      : stat.scheduleDelta >= 0
-        ? 'text-[#38f8c7]'
-        : 'text-[#ff5c87]';
+  const accent = project.colorTheme || '#8c6ff7';
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/40">Project</p>
-          <p className="mt-1 text-lg font-semibold text-white">{project.title}</p>
+    <Link
+      href={`/projects/${project._id.toString()}/board`}
+      className="group flex flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-4 text-left text-white transition hover:border-white/30 hover:bg-white/10"
+      style={{
+        borderColor: `${accent}33`,
+        background: `linear-gradient(135deg, ${accent}0d, transparent)`,
+      }}
+    >
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 space-y-1">
+            <p className="text-base font-semibold text-white line-clamp-1">
+              {project.title}
+            </p>
+            <p className="text-xs text-white/60 line-clamp-2">
+              {project.description || 'No description yet.'}
+            </p>
+          </div>
+          <Badge
+            style={{ color: accent, borderColor: `${accent}55` }}
+            className="shrink-0 bg-transparent text-[0.65rem]"
+          >
+            {statusInfo?.label || '—'}
+          </Badge>
         </div>
-        <Badge
-          style={{
-            borderColor: `${statusInfo?.color || '#6B7280'}55`,
-            color: statusInfo?.color || '#6B7280',
-          }}
-          className="bg-transparent"
-        >
-          {statusInfo?.label || 'Unknown'}
-        </Badge>
       </div>
-      <div className="mt-4">
-        <Progress value={completion} />
-        <div className="mt-2 flex items-center justify-between text-xs text-white/60">
-          <span>
+
+      <div className="mt-4 space-y-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-white/60">
             {stat ? `${stat.completedTasks}/${stat.totalTasks} tasks` : 'No tasks yet'}
           </span>
-          <span>{timelineLabel}</span>
+          <span className="font-medium text-white">{completion}%</span>
         </div>
+        <Progress value={completion} className="h-1.5" />
       </div>
-      <div className="mt-4 flex items-center justify-between text-sm text-white/70">
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-white/40" />
-          <span>
-            {nextDueDate ? `Next due ${nextDueDate.toLocaleDateString()}` : 'No upcoming due date'}
-          </span>
-        </div>
-        <span className={`text-xs font-semibold ${scheduleColor}`}>{scheduleLabel}</span>
-      </div>
-    </div>
+    </Link>
   );
 }
 
-function ActivityRow({ activity }: { activity: any }) {
+function ActivityRow({ activity }: { activity: ActivityLog }) {
   const meta = activityMeta[activity.type] || activityMeta.task_created;
   const timestamp = activity.createdAt
     ? formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })
     : '';
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white/80">
+    <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-white/80">
       <div
-        className="flex h-10 w-10 items-center justify-center rounded-2xl"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
         style={{ backgroundColor: `${meta.accent}22`, color: meta.accent }}
       >
-        <meta.icon className="h-4 w-4" />
+        <meta.icon className="h-3.5 w-3.5" />
       </div>
-      <div className="flex-1">
-        <p className="text-sm font-semibold text-white">{activity.description}</p>
-        <p className="text-xs text-white/50">{timestamp}</p>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium text-white line-clamp-1">{activity.description}</p>
+        <p className="text-[0.65rem] text-white/50">{timestamp}</p>
       </div>
     </div>
   );
