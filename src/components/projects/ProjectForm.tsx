@@ -20,13 +20,14 @@ import { PROJECT_STATUS_OPTIONS, PROJECT_COLORS, TECH_STACK_OPTIONS, ProjectStat
 import { cn } from '@/lib/utils';
 
 const projectSchema = z.object({
-  name: z.string().min(1, 'Project name is required'),
+  title: z.string().min(1, 'Project title is required'),
   description: z.string().optional(),
   status: z.enum(['planning', 'active', 'on-hold', 'completed', 'archived']),
-  color: z.string(),
+  colorTheme: z.string(),
   techStack: z.array(z.string()).optional(),
+  repoUrl: z.string().optional(),
   startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  targetDate: z.string().optional(),
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
@@ -50,17 +51,18 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
   } = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
-      name: project?.name || '',
+      title: project?.title || '',
       description: project?.description || '',
       status: (project?.status as ProjectStatus) || 'planning',
-      color: project?.color || PROJECT_COLORS[0].value,
+      colorTheme: project?.colorTheme || PROJECT_COLORS[0].value,
       techStack: project?.techStack || [],
+      repoUrl: project?.repoUrl || '',
       startDate: project?.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
-      endDate: project?.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
+      targetDate: project?.targetDate ? new Date(project.targetDate).toISOString().split('T')[0] : '',
     },
   });
 
-  const selectedColor = watch('color');
+  const selectedColor = watch('colorTheme');
   const selectedStatus = watch('status');
 
   useEffect(() => {
@@ -85,14 +87,14 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">Project Name *</Label>
+        <Label htmlFor="title">Project Title *</Label>
         <Input
-          id="name"
-          {...register('name')}
+          id="title"
+          {...register('title')}
           placeholder="My next big build"
           disabled={loading}
         />
-        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+        {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
       </div>
 
       <div className="space-y-2">
@@ -144,7 +146,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                     : 'border-transparent opacity-70 hover:opacity-100'
                 )}
                 style={{ backgroundColor: color.value }}
-                onClick={() => setValue('color', color.value)}
+                onClick={() => setValue('colorTheme', color.value)}
                 disabled={loading}
                 title={color.label}
               />
@@ -175,6 +177,16 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         </div>
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="repoUrl">Repository URL</Label>
+        <Input
+          id="repoUrl"
+          {...register('repoUrl')}
+          placeholder="https://github.com/username/repo"
+          disabled={loading}
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="startDate">Start Date</Label>
@@ -182,8 +194,8 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="endDate">End Date</Label>
-          <Input id="endDate" type="date" {...register('endDate')} disabled={loading} />
+          <Label htmlFor="targetDate">Target Date</Label>
+          <Input id="targetDate" type="date" {...register('targetDate')} disabled={loading} />
         </div>
       </div>
 

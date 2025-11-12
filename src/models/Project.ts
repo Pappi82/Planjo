@@ -9,37 +9,39 @@ const ProjectSchema = new Schema<IProject>(
       required: true,
       index: true,
     },
-    name: {
+    title: {
       type: String,
-      required: [true, 'Project name is required'],
+      required: [true, 'Project title is required'],
       trim: true,
     },
     description: {
       type: String,
-      trim: true,
+      default: '',
+    },
+    colorTheme: {
+      type: String,
+      default: '#8B5CF6',
     },
     status: {
       type: String,
       enum: ['planning', 'active', 'on-hold', 'completed'],
       default: 'planning',
     },
-    color: {
+    techStack: [{
       type: String,
-      default: '#3b82f6',
-    },
-    techStack: {
-      type: [String],
-      default: [],
+    }],
+    repoUrl: {
+      type: String,
     },
     startDate: {
       type: Date,
+      default: Date.now,
     },
-    endDate: {
+    targetDate: {
       type: Date,
     },
-    archived: {
-      type: Boolean,
-      default: false,
+    archivedAt: {
+      type: Date,
     },
   },
   {
@@ -48,7 +50,7 @@ const ProjectSchema = new Schema<IProject>(
 );
 
 // Index for faster queries
-ProjectSchema.index({ userId: 1, archived: 1 });
+ProjectSchema.index({ userId: 1, status: 1 });
 
 const Project: Model<IProject> = mongoose.models.Project || mongoose.model<IProject>('Project', ProjectSchema);
 

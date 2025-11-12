@@ -36,14 +36,15 @@ export interface IUser extends Document {
 export interface IProject extends Document {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
-  name: string;
+  title: string;
   description?: string;
+  colorTheme?: string;
   status: ProjectStatus;
-  color: string;
-  techStack: string[];
+  techStack?: string[];
+  repoUrl?: string;
   startDate?: Date;
-  endDate?: Date;
-  archived: boolean;
+  targetDate?: Date;
+  archivedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -103,10 +104,10 @@ export interface ITask extends Document {
 export interface IParkingLotItem extends Document {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
-  projectId?: Types.ObjectId;
   title: string;
   description?: string;
-  tags: string[];
+  relatedProjectIds?: Types.ObjectId[];
+  tags?: string[];
   priority: TaskPriority;
   convertedToTaskId?: Types.ObjectId;
   createdAt: Date;
@@ -120,9 +121,11 @@ export interface IParkingLotItem extends Document {
 export interface ICredential extends Document {
   _id: Types.ObjectId;
   projectId: Types.ObjectId;
-  name: string;
+  userId: Types.ObjectId;
   category: CredentialCategory;
+  label: string;
   encryptedValue: string;
+  url?: string;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -135,10 +138,12 @@ export interface ICredential extends Document {
 export interface IDocument extends Document {
   _id: Types.ObjectId;
   projectId: Types.ObjectId;
+  userId: Types.ObjectId;
   title: string;
   content: string;
-  tags: string[];
-  pinned: boolean;
+  category?: string;
+  tags?: string[];
+  linkedTaskIds?: Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -151,11 +156,10 @@ export interface IJournalEntry extends Document {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
   date: Date;
-  mood: Mood;
   content: string;
-  wins: string[];
-  challenges: string[];
-  learnings: string[];
+  relatedProjectIds?: Types.ObjectId[];
+  relatedTaskIds?: Types.ObjectId[];
+  mood?: Mood;
   createdAt: Date;
   updatedAt: Date;
 }

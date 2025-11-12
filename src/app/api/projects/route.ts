@@ -21,10 +21,14 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const archived = searchParams.get('archived') === 'true';
 
-    const projects = await Project.find({
-      userId: session.user.id,
-      archived,
-    }).sort({ createdAt: -1 });
+    const query: any = { userId: session.user.id };
+    if (archived) {
+      query.archivedAt = { $ne: null };
+    } else {
+      query.archivedAt = null;
+    }
+
+    const projects = await Project.find(query).sort({ createdAt: -1 });
 
     return NextResponse.json({ projects }, { status: 200 });
   } catch (error: any) {
@@ -46,10 +50,10 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, description, status, color, techStack, startDate, endDate } = body;
+    const { title, description, status, colorTheme, techStack, repoUrl, startDate, targetDate } = body;
 
-    if (!name) {
-      return NextResponse.json({ error: 'Project name is required' }, { status: 400 });
+    if (!title) {
+      return NextResponse.json({ error: 'Project title is required' }, { status: 400 });
     }
 
     await dbConnect();
@@ -57,14 +61,14 @@ export async function POST(req: NextRequest) {
     // Create project
     const project = await Project.create({
       userId: session.user.id,
-      name,
+      title,
       description,
       status: status || 'planning',
-      color: color || '#3b82f6',
+      colorTheme: colorTheme || '#8B5CF6',
       techStack: techStack || [],
+      repoUrl,
       startDate,
-      endDate,
-      archived: false,
+      targetDate,
     });
 
     // Create default Kanban columns for the project
@@ -84,8 +88,8 @@ export async function POST(req: NextRequest) {
       userId: session.user.id,
       projectId: project._id,
       type: 'project_created',
-      description: `Created project: ${name}`,
-      metadata: { projectId: project._id.toString(), projectName: name },
+      description: `Created project: ${title}`,
+      metadata: { projectId: project._id.toString(), projectTitle: title },
     });
 
     return NextResponse.json({ project }, { status: 201 });

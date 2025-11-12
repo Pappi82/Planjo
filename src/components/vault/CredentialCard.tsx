@@ -34,7 +34,7 @@ export default function CredentialCard({ credential, onEdit, onDelete }: Credent
       <CardHeader className="px-6 pt-6 pb-3">
         <div className="flex items-start justify-between gap-3">
           <CardTitle className="text-lg text-white flex items-center gap-2">
-            {credential.name}
+            {credential.label}
             {(credential as any).url && (
               <a
                 href={(credential as any).url}

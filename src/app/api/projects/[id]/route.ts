@@ -52,21 +52,22 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const { name, description, status, color, techStack, startDate, endDate, archived } = body;
+    const { title, description, status, colorTheme, techStack, repoUrl, startDate, targetDate, archivedAt } = body;
 
     await dbConnect();
 
     const project = await Project.findOneAndUpdate(
       { _id: params.id, userId: session.user.id },
       {
-        ...(name !== undefined && { name }),
+        ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(status !== undefined && { status }),
-        ...(color !== undefined && { color }),
+        ...(colorTheme !== undefined && { colorTheme }),
         ...(techStack !== undefined && { techStack }),
+        ...(repoUrl !== undefined && { repoUrl }),
         ...(startDate !== undefined && { startDate }),
-        ...(endDate !== undefined && { endDate }),
-        ...(archived !== undefined && { archived }),
+        ...(targetDate !== undefined && { targetDate }),
+        ...(archivedAt !== undefined && { archivedAt }),
       },
       { new: true, runValidators: true }
     );
@@ -102,7 +103,7 @@ export async function DELETE(
 
     const project = await Project.findOneAndUpdate(
       { _id: params.id, userId: session.user.id },
-      { archived: true },
+      { archivedAt: new Date() },
       { new: true }
     );
 

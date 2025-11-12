@@ -9,10 +9,6 @@ const ParkingLotItemSchema = new Schema<IParkingLotItem>(
       required: true,
       index: true,
     },
-    projectId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Project',
-    },
     title: {
       type: String,
       required: [true, 'Title is required'],
@@ -20,12 +16,15 @@ const ParkingLotItemSchema = new Schema<IParkingLotItem>(
     },
     description: {
       type: String,
-      trim: true,
+      default: '',
     },
-    tags: {
-      type: [String],
-      default: [],
-    },
+    relatedProjectIds: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Project',
+    }],
+    tags: [{
+      type: String,
+    }],
     priority: {
       type: String,
       enum: ['low', 'medium', 'high', 'urgent'],

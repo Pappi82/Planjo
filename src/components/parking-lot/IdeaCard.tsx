@@ -38,7 +38,7 @@ export default function IdeaCard({ item, onEdit, onDelete, onConvert }: IdeaCard
           <p className="text-sm text-white/70">{item.description}</p>
         )}
 
-        {item.tags.length > 0 && (
+        {item.tags && item.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {item.tags.map((tag) => (
               <span
@@ -51,7 +51,7 @@ export default function IdeaCard({ item, onEdit, onDelete, onConvert }: IdeaCard
           </div>
         )}
 
-        {item.relatedProjectIds.length > 0 && (
+        {item.relatedProjectIds && item.relatedProjectIds.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {item.relatedProjectIds.map((project: any) => (
               <Badge

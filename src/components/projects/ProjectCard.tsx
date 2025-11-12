@@ -30,7 +30,7 @@ export function ProjectCard({ project, onEdit, onArchive }: ProjectCardProps) {
     <Card className="group relative overflow-hidden border-white/5 bg-white/5 p-0 transition hover:border-white/20 hover:bg-white/10">
       <div
         className="absolute inset-0 opacity-10 blur-3xl"
-        style={{ background: `radial-gradient(circle at 20% 20%, ${project.color || '#8c6ff7'}, transparent 60%)` }}
+        style={{ background: `radial-gradient(circle at 20% 20%, ${project.colorTheme || '#8c6ff7'}, transparent 60%)` }}
       />
       <Link href={`/projects/${project._id}/board`} className="relative block p-6">
         <CardHeader className="px-0 pb-4">
@@ -38,13 +38,13 @@ export function ProjectCard({ project, onEdit, onArchive }: ProjectCardProps) {
             <div className="flex flex-1 items-center gap-3">
               <div
                 className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 text-white"
-                style={{ backgroundColor: `${(project.color || '#8c6ff7')}22` }}
+                style={{ backgroundColor: `${(project.colorTheme || '#8c6ff7')}22` }}
               >
                 <FolderKanbanIcon />
               </div>
               <div className="min-w-0 flex-1">
                 <CardTitle className="truncate text-lg font-semibold text-white group-hover:text-[#38f8c7]">
-                  {project.name}
+                  {project.title}
                 </CardTitle>
                 <CardDescription className="mt-1 line-clamp-2 text-white/60">
                   {project.description || 'No description yet'}
@@ -110,7 +110,7 @@ export function ProjectCard({ project, onEdit, onArchive }: ProjectCardProps) {
             </div>
           )}
 
-          {(project.startDate || project.endDate) && (
+          {(project.startDate || project.targetDate) && (
             <div className="flex items-center gap-2 text-sm text-white/60">
               <Calendar className="h-4 w-4" />
               <span>
@@ -118,7 +118,7 @@ export function ProjectCard({ project, onEdit, onArchive }: ProjectCardProps) {
               </span>
               <span>→</span>
               <span>
-                {project.endDate ? dayjs(project.endDate).format('MMM D, YYYY') : 'Open'}
+                {project.targetDate ? dayjs(project.targetDate).format('MMM D, YYYY') : 'Open'}
               </span>
             </div>
           )}

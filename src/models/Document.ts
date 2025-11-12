@@ -9,6 +9,12 @@ const DocumentSchema = new Schema<IDocument>(
       required: true,
       index: true,
     },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true,
+    },
     title: {
       type: String,
       required: [true, 'Document title is required'],
@@ -18,23 +24,26 @@ const DocumentSchema = new Schema<IDocument>(
       type: String,
       default: '',
     },
-    tags: {
-      type: [String],
-      default: [],
+    category: {
+      type: String,
+      default: 'General',
     },
-    pinned: {
-      type: Boolean,
-      default: false,
-    },
+    tags: [{
+      type: String,
+    }],
+    linkedTaskIds: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Task',
+    }],
   },
   {
     timestamps: true,
   }
 );
 
-// Indexes for faster queries
-DocumentSchema.index({ projectId: 1, pinned: -1 });
-DocumentSchema.index({ title: 'text', content: 'text' }); // Full-text search
+// Indexes for faster queries and full-text search
+DocumentSchema.index({ projectId: 1, userId: 1 });
+DocumentSchema.index({ title: 'text', content: 'text' });
 
 const DocumentModel: Model<IDocument> = 
   mongoose.models.Document || mongoose.model<IDocument>('Document', DocumentSchema);

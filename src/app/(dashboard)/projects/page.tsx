@@ -52,7 +52,7 @@ export default function ProjectsPage() {
   };
 
   const handleArchiveProject = async (project: Project) => {
-    if (!confirm(`Are you sure you want to archive "${project.name}"?`)) return;
+    if (!confirm(`Are you sure you want to archive "${project.title}"?`)) return;
     try {
       const response = await fetch(`/api/projects/${project._id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to archive project');

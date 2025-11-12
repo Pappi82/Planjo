@@ -51,7 +51,7 @@ export default function ParkingLotPage() {
       title: item.title,
       description: item.description || '',
       priority: item.priority,
-      tags: item.tags.join(', '),
+      tags: item.tags?.join(', ') || '',
     });
     setDialogOpen(true);
   };

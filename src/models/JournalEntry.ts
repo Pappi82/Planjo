@@ -14,26 +14,21 @@ const JournalEntrySchema = new Schema<IJournalEntry>(
       required: true,
       index: true,
     },
-    mood: {
-      type: String,
-      enum: ['great', 'good', 'okay', 'struggling'],
-      required: true,
-    },
     content: {
       type: String,
       default: '',
     },
-    wins: {
-      type: [String],
-      default: [],
-    },
-    challenges: {
-      type: [String],
-      default: [],
-    },
-    learnings: {
-      type: [String],
-      default: [],
+    relatedProjectIds: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Project',
+    }],
+    relatedTaskIds: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Task',
+    }],
+    mood: {
+      type: String,
+      enum: ['great', 'good', 'okay', 'struggling'],
     },
   },
   {
@@ -41,8 +36,8 @@ const JournalEntrySchema = new Schema<IJournalEntry>(
   }
 );
 
-// Unique index to ensure one entry per user per day
-JournalEntrySchema.index({ userId: 1, date: 1 }, { unique: true });
+// Index for faster queries
+JournalEntrySchema.index({ userId: 1, date: -1 });
 
 const JournalEntry: Model<IJournalEntry> = 
   mongoose.models.JournalEntry || mongoose.model<IJournalEntry>('JournalEntry', JournalEntrySchema);

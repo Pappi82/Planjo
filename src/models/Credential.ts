@@ -9,23 +9,32 @@ const CredentialSchema = new Schema<ICredential>(
       required: true,
       index: true,
     },
-    name: {
-      type: String,
-      required: [true, 'Credential name is required'],
-      trim: true,
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true,
     },
     category: {
       type: String,
       enum: ['api-key', 'password', 'database-url', 'env-var', 'other'],
-      default: 'other',
+      required: true,
+    },
+    label: {
+      type: String,
+      required: [true, 'Credential label is required'],
+      trim: true,
     },
     encryptedValue: {
       type: String,
       required: [true, 'Encrypted value is required'],
     },
+    url: {
+      type: String,
+    },
     notes: {
       type: String,
-      trim: true,
+      default: '',
     },
   },
   {
@@ -34,7 +43,7 @@ const CredentialSchema = new Schema<ICredential>(
 );
 
 // Index for faster queries
-CredentialSchema.index({ projectId: 1 });
+CredentialSchema.index({ projectId: 1, userId: 1 });
 
 const Credential: Model<ICredential> = 
   mongoose.models.Credential || mongoose.model<ICredential>('Credential', CredentialSchema);
