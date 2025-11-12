@@ -49,6 +49,18 @@ export interface IProject extends Document {
   updatedAt: Date;
 }
 
+export interface ProjectDashboardStat {
+  projectId: string;
+  totalTasks: number;
+  completedTasks: number;
+  upcomingTasks: number;
+  overdueTasks: number;
+  completionRate: number;
+  daysToTarget?: number | null;
+  nextDueDate?: Date | null;
+  scheduleDelta?: number | null;
+}
+
 // ============================================================================
 // KANBAN COLUMN
 // ============================================================================
@@ -192,5 +204,16 @@ export type ParkingLotItem = Omit<IParkingLotItem, keyof Document>;
 export type Credential = Omit<ICredential, keyof Document>;
 export type DocumentType = Omit<IDocument, keyof Document>;
 export type JournalEntry = Omit<IJournalEntry, keyof Document>;
-export type ActivityLog = Omit<IActivityLog, keyof Document>;
+export type ActivityLog = Omit<IActivityLog, keyof Document> & { _id?: string };
 
+export interface AnalyticsSnapshot {
+  streak: {
+    current: number;
+    max: number;
+  };
+  tasksCompleted: number;
+  weeklyVelocity: Record<string, number>;
+  mostProductiveHour: number;
+  hourlyActivity: Record<string, number>;
+  activeDays: number;
+}

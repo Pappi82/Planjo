@@ -1,22 +1,18 @@
 'use client';
 
-import useSWR from 'swr';
 import StreakDisplay from '@/components/analytics/StreakDisplay';
 import VelocityChart from '@/components/analytics/VelocityChart';
 import ProductivityHeatmap from '@/components/analytics/ProductivityHeatmap';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { TrendingUp, Target, Clock } from 'lucide-react';
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 export default function AnalyticsPage() {
-  const { data, isLoading } = useSWR('/api/analytics?days=30', fetcher);
+  const { analytics, isLoading } = useAnalytics({ days: 30 });
 
   if (isLoading) {
     return <div className="p-8 text-white/60">Loading analytics...</div>;
   }
-
-  const analytics = data || {};
 
   return (
     <div className="space-y-8">
@@ -27,7 +23,7 @@ export default function AnalyticsPage() {
         </p>
       </div>
 
-      <StreakDisplay current={analytics.streak?.current || 0} max={analytics.streak?.max || 0} />
+      <StreakDisplay current={analytics?.streak?.current || 0} max={analytics?.streak?.max || 0} />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="border-white/10 bg-white/5">
@@ -36,7 +32,7 @@ export default function AnalyticsPage() {
             <Target className="h-4 w-4 text-white/60" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-semibold text-white">{analytics.tasksCompleted || 0}</div>
+            <div className="text-3xl font-semibold text-white">{analytics?.tasksCompleted || 0}</div>
             <p className="text-xs uppercase tracking-[0.3em] text-white/60">Last 30 days</p>
           </CardContent>
         </Card>
@@ -47,7 +43,7 @@ export default function AnalyticsPage() {
             <TrendingUp className="h-4 w-4 text-white/60" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-semibold text-white">{analytics.activeDays || 0}</div>
+            <div className="text-3xl font-semibold text-white">{analytics?.activeDays || 0}</div>
             <p className="text-xs uppercase tracking-[0.3em] text-white/60">Presence</p>
           </CardContent>
         </Card>
@@ -59,16 +55,16 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-semibold text-white">
-              {analytics.mostProductiveHour || 0}:00
+              {analytics?.mostProductiveHour || 0}:00
             </div>
             <p className="text-xs uppercase tracking-[0.3em] text-white/60">Deep work</p>
           </CardContent>
         </Card>
       </div>
 
-      <VelocityChart data={analytics.weeklyVelocity || {}} />
+      <VelocityChart data={analytics?.weeklyVelocity || {}} />
 
-      <ProductivityHeatmap hourlyActivity={analytics.hourlyActivity || {}} />
+      <ProductivityHeatmap hourlyActivity={analytics?.hourlyActivity || {}} />
     </div>
   );
 }
