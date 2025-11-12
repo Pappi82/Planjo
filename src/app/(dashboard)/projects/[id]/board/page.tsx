@@ -25,12 +25,50 @@ export default function BoardPage() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
   const handleTaskMove = async (taskId: string, newStatus: string, newPosition: number) => {
-    await fetch('/api/tasks/reorder', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId, newStatus, newPosition }),
-    });
-    mutateTasks();
+    // Optimistic update: immediately update the UI
+    mutateTasks(
+      async (currentData: { tasks: ITask[] } | undefined) => {
+        if (!currentData?.tasks) return currentData;
+
+        // Find the task being moved
+        const taskIndex = currentData.tasks.findIndex((t: ITask) => t._id.toString() === taskId);
+        if (taskIndex === -1) return currentData;
+
+        // Create a new array with the updated task
+        const updatedTasks = [...currentData.tasks];
+        updatedTasks[taskIndex] = {
+          ...updatedTasks[taskIndex],
+          status: newStatus,
+          position: newPosition,
+        } as ITask;
+
+        return { ...currentData, tasks: updatedTasks };
+      },
+      {
+        // Don't revalidate immediately - we'll do it after the API call
+        revalidate: false,
+      }
+    );
+
+    // Make the API call in the background
+    try {
+      const response = await fetch('/api/tasks/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId, newStatus, newPosition }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to move task');
+      }
+
+      // Revalidate to ensure we're in sync with the server
+      mutateTasks();
+    } catch (error) {
+      console.error('Error moving task:', error);
+      // Revert the optimistic update by revalidating
+      mutateTasks();
+    }
   };
 
   const handleTaskCreate = (columnName: string) => {
@@ -85,8 +123,8 @@ export default function BoardPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="planjo-panel flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-6">
+    <div className="flex flex-col h-full space-y-6">
+      <div className="planjo-panel flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-6 flex-shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
             <FolderKanban className="h-6 w-6 text-white" />
@@ -122,7 +160,7 @@ export default function BoardPage() {
         </div>
       </div>
 
-      <div className="rounded-3xl border border-white/10 bg-white/0 p-4">
+      <div className="rounded-3xl border border-white/10 bg-white/0 p-4 flex-1 min-h-0">
         <KanbanBoard
           columns={columns}
           tasks={tasks}

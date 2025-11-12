@@ -19,12 +19,16 @@ export default function KanbanColumn({
   onTaskClick,
   onTaskCreate,
 }: KanbanColumnProps) {
-  const { setNodeRef } = useDroppable({ id: column._id.toString() });
+  const { setNodeRef, isOver } = useDroppable({ id: column._id.toString() });
 
   return (
-    <div className="flex w-80 flex-shrink-0 flex-col">
-      <div className="flex flex-col rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
-        <div className="flex items-start justify-between gap-2">
+    <div className="flex w-80 flex-shrink-0 flex-col h-full">
+      <div className={`flex flex-col rounded-3xl border p-5 backdrop-blur-xl h-full transition-all duration-200 ${
+        isOver
+          ? 'border-white/40 bg-white/10 shadow-lg'
+          : 'border-white/10 bg-white/5'
+      }`}>
+        <div className="flex items-start justify-between gap-2 flex-shrink-0">
           <div>
             <h3 className="text-lg font-semibold text-white">{column.name}</h3>
             <p className="text-xs uppercase tracking-[0.3em] text-white/40">{tasks.length} tasks</p>
@@ -38,7 +42,7 @@ export default function KanbanColumn({
           </button>
         </div>
 
-        <div ref={setNodeRef} className="mt-4 flex max-h-[70vh] flex-col gap-3 overflow-y-auto pr-1">
+        <div ref={setNodeRef} className="mt-4 flex flex-1 flex-col gap-3 overflow-y-auto pr-1 min-h-0">
           <SortableContext
             items={tasks.map((t) => t._id.toString())}
             strategy={verticalListSortingStrategy}

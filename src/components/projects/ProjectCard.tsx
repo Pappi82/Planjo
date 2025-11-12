@@ -90,9 +90,6 @@ export function ProjectCard({ project, onEdit, onArchive }: ProjectCardProps) {
             >
               {statusInfo.label}
             </Badge>
-            {project.priority && (
-              <Badge variant="outline">{project.priority}</Badge>
-            )}
           </div>
 
           {project.techStack && project.techStack.length > 0 && (

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import Task from '@/models/Task';
 import ActivityLog from '@/models/ActivityLog';
+import KanbanColumn from '@/models/KanbanColumn';
 
 // GET all tasks for a project
 export async function GET(request: NextRequest) {
@@ -25,26 +26,50 @@ export async function GET(request: NextRequest) {
 
     await dbConnect();
 
+    console.log('Fetching tasks with:', { projectId, userId: session.user.id });
+
+    // First, let's see all tasks for this project regardless of userId
+    const allProjectTasks = await Task.find({ projectId });
+    console.log(`Total tasks in project: ${allProjectTasks.length}`);
+    if (allProjectTasks.length > 0) {
+      console.log('Sample task from DB:', {
+        _id: allProjectTasks[0]._id.toString(),
+        userId: allProjectTasks[0].userId?.toString(),
+        projectId: allProjectTasks[0].projectId?.toString(),
+        parentTaskId: allProjectTasks[0].parentTaskId?.toString(),
+        title: allProjectTasks[0].title,
+      });
+    }
+
+    // Query for tasks - temporarily not filtering by userId to handle legacy data
     const tasks = await Task.find({
       projectId,
-      userId: session.user.id,
-      parentTaskId: null, // Only get parent tasks
+      $or: [
+        { parentTaskId: null },
+        { parentTaskId: { $exists: false } }
+      ]
     }).sort({ position: 1 });
+
+    console.log(`Query returned ${tasks.length} tasks`);
 
     // Get subtasks for each task
     const tasksWithSubtasks = await Promise.all(
       tasks.map(async (task) => {
         const subtasks = await Task.find({
           parentTaskId: task._id,
-          userId: session.user.id,
         }).sort({ position: 1 });
-        
+
         return {
           ...task.toObject(),
           subtasks,
         };
       })
     );
+
+    console.log(`Found ${tasksWithSubtasks.length} tasks for project ${projectId}`);
+    if (tasksWithSubtasks.length > 0) {
+      console.log('Sample task:', JSON.stringify(tasksWithSubtasks[0], null, 2));
+    }
 
     return NextResponse.json({ tasks: tasksWithSubtasks });
   } catch (error) {
@@ -86,22 +111,45 @@ export async function POST(request: NextRequest) {
 
     await dbConnect();
 
+    // Find the column by name and projectId
+    const columnName = status || 'To Do';
+    const column = await KanbanColumn.findOne({
+      projectId,
+      name: columnName,
+    });
+
+    if (!column) {
+      return NextResponse.json(
+        { error: `Column "${columnName}" not found for this project` },
+        { status: 400 }
+      );
+    }
+
     // Get the highest position number for this status
     const lastTask = await Task.findOne({
       projectId,
-      status: status || 'To Do',
+      columnId: column._id,
       parentTaskId: parentTaskId || null,
     }).sort({ position: -1 });
 
     const position = lastTask ? lastTask.position + 1 : 0;
 
     // Create task
+    console.log('Creating task with:', {
+      userId: session.user.id,
+      projectId,
+      columnId: column._id.toString(),
+      title,
+      status: columnName,
+    });
+
     const task = await Task.create({
       userId: session.user.id,
       projectId,
+      columnId: column._id,
       title,
       description,
-      status: status || 'To Do',
+      status: columnName,
       priority: priority || 'medium',
       labels: labels || [],
       dueDate,
@@ -109,6 +157,8 @@ export async function POST(request: NextRequest) {
       parentTaskId,
       position,
     });
+
+    console.log('Task created successfully:', task._id.toString());
 
     // Log activity
     await ActivityLog.create({

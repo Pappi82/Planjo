@@ -29,9 +29,9 @@ export default function CredentialForm({
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     category: credential?.category || 'api-key',
-    label: credential?.label || '',
+    label: credential?.name || '',
     value: '', // Decrypted value for editing
-    url: credential?.url || '',
+    url: (credential as any)?.url || '',
     notes: credential?.notes || '',
   });
 

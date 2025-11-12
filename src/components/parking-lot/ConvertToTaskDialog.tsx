@@ -65,7 +65,7 @@ export default function ConvertToTaskDialog({
               <SelectContent>
                 {projects.map((project) => (
                   <SelectItem key={project._id.toString()} value={project._id.toString()}>
-                    {project.title}
+                    {project.name}
                   </SelectItem>
                 ))}
               </SelectContent>

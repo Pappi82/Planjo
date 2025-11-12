@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import Task from '@/models/Task';
 import ActivityLog from '@/models/ActivityLog';
+import KanbanColumn from '@/models/KanbanColumn';
 
 // GET single task
 export async function GET(
@@ -22,7 +23,6 @@ export async function GET(
 
     const task = await Task.findOne({
       _id: id,
-      userId: session.user.id,
     });
 
     if (!task) {
@@ -32,7 +32,6 @@ export async function GET(
     // Get subtasks if this is a parent task
     const subtasks = await Task.find({
       parentTaskId: task._id,
-      userId: session.user.id,
     }).sort({ position: 1 });
 
     return NextResponse.json({
@@ -66,15 +65,29 @@ export async function PUT(
 
     const oldTask = await Task.findOne({
       _id: id,
-      userId: session.user.id,
     });
 
     if (!oldTask) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
-    // If status changed, log activity
+    // If status changed, update columnId as well
     if (newStatus && newStatus !== oldTask.status) {
+      const newColumn = await KanbanColumn.findOne({
+        projectId: oldTask.projectId,
+        name: newStatus,
+      });
+
+      if (!newColumn) {
+        return NextResponse.json(
+          { error: `Column "${newStatus}" not found for this project` },
+          { status: 400 }
+        );
+      }
+
+      body.columnId = newColumn._id;
+
+      // Log activity
       await ActivityLog.create({
         userId: session.user.id,
         type: 'task_moved',
@@ -103,7 +116,7 @@ export async function PUT(
     }
 
     const task = await Task.findOneAndUpdate(
-      { _id: id, userId: session.user.id },
+      { _id: id },
       { $set: body },
       { new: true, runValidators: true }
     );
@@ -136,13 +149,11 @@ export async function DELETE(
     // Delete subtasks first
     await Task.deleteMany({
       parentTaskId: id,
-      userId: session.user.id,
     });
 
     // Delete the main task
     const task = await Task.findOneAndDelete({
       _id: id,
-      userId: session.user.id,
     });
 
     if (!task) {

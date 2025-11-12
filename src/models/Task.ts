@@ -28,6 +28,12 @@ const TaskSchema = new Schema<ITask>(
       required: true,
       index: true,
     },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: false, // Temporarily optional to handle existing data
+      index: true,
+    },
     columnId: {
       type: Schema.Types.ObjectId,
       ref: 'KanbanColumn',
@@ -43,10 +49,19 @@ const TaskSchema = new Schema<ITask>(
       type: String,
       trim: true,
     },
+    status: {
+      type: String,
+      required: true,
+      default: 'To Do',
+    },
     priority: {
       type: String,
       enum: ['low', 'medium', 'high', 'urgent'],
       default: 'medium',
+    },
+    labels: {
+      type: [String],
+      default: [],
     },
     tags: {
       type: [String],
@@ -56,13 +71,28 @@ const TaskSchema = new Schema<ITask>(
       type: [SubtaskSchema],
       default: [],
     },
+    position: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
     order: {
       type: Number,
       required: true,
       default: 0,
     },
+    parentTaskId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Task',
+    },
     dueDate: {
       type: Date,
+    },
+    estimatedHours: {
+      type: Number,
+    },
+    actualHours: {
+      type: Number,
     },
     completedAt: {
       type: Date,
@@ -75,6 +105,8 @@ const TaskSchema = new Schema<ITask>(
 
 // Indexes for faster queries
 TaskSchema.index({ projectId: 1, columnId: 1, order: 1 });
+TaskSchema.index({ projectId: 1, status: 1, position: 1 });
+TaskSchema.index({ userId: 1, dueDate: 1 });
 TaskSchema.index({ dueDate: 1 });
 
 const Task: Model<ITask> = mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);

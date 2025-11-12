@@ -55,15 +55,15 @@ export async function POST(request: NextRequest) {
 
     await dbConnect();
 
-    // Get the highest position number
-    const lastColumn = await KanbanColumn.findOne({ projectId }).sort({ position: -1 });
-    const position = lastColumn ? lastColumn.position + 1 : 0;
+    // Get the highest order number
+    const lastColumn = await KanbanColumn.findOne({ projectId }).sort({ order: -1 });
+    const order = lastColumn ? lastColumn.order + 1 : 0;
 
     const column = await KanbanColumn.create({
       projectId,
       name,
       color: color || '#6B7280',
-      position,
+      order,
     });
 
     return NextResponse.json({ column }, { status: 201 });

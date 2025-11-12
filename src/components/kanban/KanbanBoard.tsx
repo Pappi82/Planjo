@@ -9,6 +9,8 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  defaultDropAnimationSideEffects,
+  type DropAnimation,
 } from '@dnd-kit/core';
 import { ITask, IKanbanColumn } from '@/types';
 import KanbanColumn from './KanbanColumn';
@@ -39,6 +41,18 @@ export default function KanbanBoard({
     })
   );
 
+  const dropAnimation: DropAnimation = {
+    sideEffects: defaultDropAnimationSideEffects({
+      styles: {
+        active: {
+          opacity: '0.5',
+        },
+      },
+    }),
+    duration: 250,
+    easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+  };
+
   const handleDragStart = (event: DragStartEvent) => {
     const task = tasks.find((t) => t._id.toString() === event.active.id);
     setActiveTask(task || null);
@@ -46,27 +60,45 @@ export default function KanbanBoard({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!over) return;
+
+    if (!over) {
+      setActiveTask(null);
+      return;
+    }
 
     const taskId = active.id as string;
     const overId = over.id as string;
     const overColumn = columns.find((col) => col._id.toString() === overId);
 
-    if (overColumn) {
+    if (overColumn && activeTask) {
       const tasksInColumn = tasks.filter((t) => t.status === overColumn.name);
       const newPosition = tasksInColumn.length;
+
+      // Update the active task with the new status so the drop animation goes to the new column
+      setActiveTask({
+        ...activeTask,
+        status: overColumn.name,
+        position: newPosition,
+      } as ITask);
+
+      // Trigger the move
       onTaskMove(taskId, overColumn.name, newPosition);
       play('success');
-    }
 
-    setActiveTask(null);
+      // Clear the active task after the drop animation completes
+      setTimeout(() => {
+        setActiveTask(null);
+      }, 250);
+    } else {
+      setActiveTask(null);
+    }
   };
 
   const getTasksForColumn = (columnName: string) => tasks.filter((task) => task.status === columnName);
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex gap-6 overflow-x-auto pb-6">
+      <div className="flex gap-6 overflow-x-auto pb-6 h-full">
         {columns.map((column) => (
           <KanbanColumn
             key={column._id.toString()}
@@ -81,7 +113,7 @@ export default function KanbanBoard({
         ))}
       </div>
 
-      <DragOverlay>
+      <DragOverlay dropAnimation={dropAnimation}>
         {activeTask ? <KanbanCard task={activeTask} isDragging accentColor="#8c6ff7" /> : null}
       </DragOverlay>
     </DndContext>

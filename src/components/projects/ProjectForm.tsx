@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 const projectSchema = z.object({
   name: z.string().min(1, 'Project name is required'),
   description: z.string().optional(),
-  status: z.enum(['planning', 'active', 'on-hold', 'completed']),
+  status: z.enum(['planning', 'active', 'on-hold', 'completed', 'archived']),
   color: z.string(),
   techStack: z.array(z.string()).optional(),
   startDate: z.string().optional(),

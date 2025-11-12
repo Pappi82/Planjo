@@ -17,14 +17,17 @@ interface KanbanCardProps {
 }
 
 export default function KanbanCard({ task, onClick, isDragging, accentColor }: KanbanCardProps) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging: isSortableDragging } = useSortable({
     id: task._id.toString(),
   });
 
+  const isBeingDragged = isDragging || isSortableDragging;
+
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+    transition: transition || 'transform 200ms ease',
+    opacity: isBeingDragged ? 0.5 : 1,
+    cursor: isBeingDragged ? 'grabbing' : 'grab',
   };
 
   const priorityColor = TASK_PRIORITIES.find((p) => p.value === task.priority)?.color;
@@ -38,7 +41,9 @@ export default function KanbanCard({ task, onClick, isDragging, accentColor }: K
       style={style}
       {...attributes}
       {...listeners}
-      className="cursor-pointer rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-white/30 hover:bg-white/10"
+      className={`rounded-2xl border border-white/10 bg-white/5 p-4 transition-all duration-200 hover:border-white/30 hover:bg-white/10 ${
+        isBeingDragged ? 'scale-105 shadow-2xl ring-2 ring-white/20' : 'cursor-grab active:cursor-grabbing'
+      }`}
       onClick={onClick}
     >
       <div className="space-y-3">

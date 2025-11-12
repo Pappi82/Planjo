@@ -4,7 +4,7 @@ import { Document, Types } from 'mongoose';
 // ENUMS & TYPES
 // ============================================================================
 
-export type ProjectStatus = 'planning' | 'active' | 'on-hold' | 'completed';
+export type ProjectStatus = 'planning' | 'active' | 'on-hold' | 'completed' | 'archived';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type CredentialCategory = 'api-key' | 'password' | 'database-url' | 'env-var' | 'other';
 export type ActivityType = 
@@ -76,14 +76,21 @@ export interface ISubtask {
 export interface ITask extends Document {
   _id: Types.ObjectId;
   projectId: Types.ObjectId;
+  userId: Types.ObjectId;
   columnId: Types.ObjectId;
   title: string;
   description?: string;
+  status: string;
   priority: TaskPriority;
+  labels: string[];
   tags: string[];
   subtasks: ISubtask[];
+  position: number;
   order: number;
+  parentTaskId?: Types.ObjectId;
   dueDate?: Date;
+  estimatedHours?: number;
+  actualHours?: number;
   completedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -171,10 +178,10 @@ export interface IActivityLog extends Document {
 // CLIENT-SIDE TYPES (without Mongoose Document)
 // ============================================================================
 
-export type User = Omit<IUser, keyof Document>;
-export type Project = Omit<IProject, keyof Document>;
-export type KanbanColumn = Omit<IKanbanColumn, keyof Document>;
-export type Task = Omit<ITask, keyof Document>;
+export type User = Omit<IUser, keyof Omit<Document, '_id'>>;
+export type Project = Omit<IProject, keyof Omit<Document, '_id'>>;
+export type KanbanColumn = Omit<IKanbanColumn, keyof Omit<Document, '_id'>>;
+export type Task = Omit<ITask, keyof Omit<Document, '_id'>>;
 export type Subtask = ISubtask;
 export type ParkingLotItem = Omit<IParkingLotItem, keyof Document>;
 export type Credential = Omit<ICredential, keyof Document>;

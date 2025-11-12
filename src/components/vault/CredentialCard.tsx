@@ -34,10 +34,10 @@ export default function CredentialCard({ credential, onEdit, onDelete }: Credent
       <CardHeader className="px-6 pt-6 pb-3">
         <div className="flex items-start justify-between gap-3">
           <CardTitle className="text-lg text-white flex items-center gap-2">
-            {credential.label}
-            {credential.url && (
+            {credential.name}
+            {(credential as any).url && (
               <a
-                href={credential.url}
+                href={(credential as any).url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white/60 hover:text-white"
