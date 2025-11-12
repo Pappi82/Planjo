@@ -4,6 +4,10 @@ import bcrypt from 'bcryptjs';
 import dbConnect from './db';
 import User from '@/models/User';
 
+console.log('[auth.ts] Initializing auth options');
+console.log('[auth.ts] NEXTAUTH_SECRET present:', !!process.env.NEXTAUTH_SECRET);
+console.log('[auth.ts] MONGODB_URI present:', !!process.env.MONGODB_URI);
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
