@@ -16,14 +16,11 @@ interface VibeContainerProps {
 }
 
 export default function VibeContainer({ task, onClose, onComplete }: VibeContainerProps) {
-  console.log('[VibeContainer] Rendering with task:', task?._id);
-
   const [scratchpad, setScratchpad] = useState('');
   const [bgColor, setBgColor] = useState('#02030a');
 
   // Load existing vibe notes when component mounts
   useEffect(() => {
-    console.log('[VibeContainer] Loading vibe notes for task:', task._id);
     if (task.vibeNotes) {
       setScratchpad(task.vibeNotes);
     }

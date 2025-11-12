@@ -27,7 +27,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  console.log('[RootLayout] Rendering root layout');
   return (
     <html lang="en">
       <body className={`${planjoSans.variable} ${planjoMono.variable} antialiased bg-[#02030a] text-white`}>

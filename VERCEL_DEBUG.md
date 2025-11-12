@@ -1,9 +1,29 @@
-# Vercel Deployment Debug Guide
+# Vercel Deployment Issue - RESOLVED ✅
 
 ## Error Details
-- **Error**: White screen with Server Components render error
+- **Error**: White screen with Server Components render error (500 Internal Server Error)
 - **Console Error**: `Uncaught Error: An error occurred in the Server Components render`
-- **Status**: Error message is hidden in production builds
+- **Root Cause**: Next.js 16 was trying to statically generate authenticated routes at build time
+- **Status**: ✅ FIXED
+
+## The Problem
+
+Next.js 16 was attempting to pre-render dashboard routes at build time, but these routes use `getServerSession()` which requires access to request headers. This caused the error:
+
+```
+Dynamic server usage: Route / couldn't be rendered statically because it used `headers`
+```
+
+## The Solution
+
+Added `export const dynamic = 'force-dynamic';` to the dashboard layout to force dynamic rendering:
+
+```typescript
+// src/app/(dashboard)/layout.tsx
+export const dynamic = 'force-dynamic';
+```
+
+This tells Next.js to always render these routes on-demand (server-side) instead of trying to pre-render them at build time.
 
 ## Changes Made for Debugging
 

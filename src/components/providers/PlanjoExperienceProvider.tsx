@@ -11,12 +11,10 @@ interface PlanjoSound {
 const PlanjoSoundContext = createContext<PlanjoSound>({ play: () => {} });
 
 export function PlanjoExperienceProvider({ children }: { children: React.ReactNode }) {
-  console.log('[PlanjoExperienceProvider] Rendering provider');
   const audioRef = useRef<AudioContext | null>(null);
 
   const play = useCallback((intent: SoundIntent = 'action') => {
     if (typeof window === 'undefined') {
-      console.log('[PlanjoExperienceProvider] Window undefined, skipping sound');
       return;
     }
 

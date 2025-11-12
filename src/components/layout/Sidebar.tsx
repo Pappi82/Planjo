@@ -30,8 +30,6 @@ export function Sidebar() {
   const pathname = usePathname();
   const { play } = usePlanjoSound();
 
-  console.log('[Sidebar] Rendering sidebar, pathname:', pathname);
-
   const handleSignOut = () => {
     play('action');
     signOut({ callbackUrl: '/login' });
