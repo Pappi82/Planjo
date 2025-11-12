@@ -50,9 +50,20 @@ export default function AmbientSoundPlayer() {
   const [volume, setVolume] = useState(30);
   const [isMuted, setIsMuted] = useState(false);
   const [player, setPlayer] = useState<any>(null);
+  const [isClient, setIsClient] = useState(false);
   const playerRef = useRef<any>(null);
 
   useEffect(() => {
+    // Set client-side flag
+    setIsClient(true);
+
+    // Only load YouTube API on client side
+    if (typeof window === 'undefined') return;
+
+    // Check if script already exists
+    const existingScript = document.querySelector('script[src*="youtube.com/iframe_api"]');
+    if (existingScript) return;
+
     // Load YouTube IFrame API
     const tag = document.createElement('script');
     tag.src = 'https://www.youtube.com/iframe_api';
@@ -76,6 +87,9 @@ export default function AmbientSoundPlayer() {
   }, [volume, isMuted, player]);
 
   const handleSoundToggle = (soundId: string) => {
+    // Only work on client side
+    if (typeof window === 'undefined') return;
+
     if (activeSound === soundId) {
       // Stop current sound
       if (player) {
@@ -89,6 +103,13 @@ export default function AmbientSoundPlayer() {
       if (sound) {
         if (player) {
           player.stopVideo();
+        }
+
+        // Check if YouTube API is loaded
+        // @ts-ignore
+        if (!window.YT || !window.YT.Player) {
+          console.error('YouTube API not loaded yet');
+          return;
         }
 
         // Create new player
@@ -130,6 +151,19 @@ export default function AmbientSoundPlayer() {
   const toggleMute = () => {
     setIsMuted(!isMuted);
   };
+
+  // Don't render on server
+  if (!isClient) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-white/50">Ambient Sounds</h3>
+          <div className="h-px flex-1 bg-white/10" />
+        </div>
+        <div className="text-sm text-white/40">Loading ambient sounds...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
