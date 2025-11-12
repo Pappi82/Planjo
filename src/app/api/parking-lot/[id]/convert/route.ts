@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import ParkingLotItem from '@/models/ParkingLotItem';
 import Task from '@/models/Task';
+import KanbanColumn from '@/models/KanbanColumn';
 
 // POST convert parking lot item to task
 export async function POST(
@@ -37,10 +38,24 @@ export async function POST(
       return NextResponse.json({ error: 'Item not found' }, { status: 404 });
     }
 
+    // Find the column by name and projectId
+    const columnName = status || 'To Do';
+    const column = await KanbanColumn.findOne({
+      projectId,
+      name: columnName,
+    });
+
+    if (!column) {
+      return NextResponse.json(
+        { error: `Column "${columnName}" not found for this project` },
+        { status: 400 }
+      );
+    }
+
     // Get last task position
     const lastTask = await Task.findOne({
       projectId,
-      status: status || 'To Do',
+      columnId: column._id,
     }).sort({ position: -1 });
 
     const position = lastTask ? lastTask.position + 1 : 0;
@@ -49,9 +64,10 @@ export async function POST(
     const task = await Task.create({
       userId: session.user.id,
       projectId,
+      columnId: column._id,
       title: item.title,
       description: item.description,
-      status: status || 'To Do',
+      status: columnName,
       priority: priority || item.priority,
       position,
     });
