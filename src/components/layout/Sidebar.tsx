@@ -161,14 +161,14 @@ function PlanjoLogo() {
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          {/* Gradient definitions */}
+          {/* Gradient definitions with stable IDs */}
           <defs>
-            <linearGradient id="planjo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="planjo-sidebar-gradient-1" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#8B5CF6" />
               <stop offset="50%" stopColor="#38f8c7" />
               <stop offset="100%" stopColor="#ff5c87" />
             </linearGradient>
-            <linearGradient id="planjo-gradient-2" x1="100%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id="planjo-sidebar-gradient-2" x1="100%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#ff5c87" />
               <stop offset="50%" stopColor="#38f8c7" />
               <stop offset="100%" stopColor="#8B5CF6" />
@@ -180,14 +180,14 @@ function PlanjoLogo() {
             cx="32"
             cy="32"
             r="30"
-            fill="url(#planjo-gradient)"
+            fill="url(#planjo-sidebar-gradient-1)"
             opacity="0.08"
           />
 
           {/* Three flowing curves representing momentum and flow */}
           <path
             d="M 16 24 Q 32 16 48 24"
-            stroke="url(#planjo-gradient)"
+            stroke="url(#planjo-sidebar-gradient-1)"
             strokeWidth="3"
             strokeLinecap="round"
             fill="none"
@@ -195,14 +195,14 @@ function PlanjoLogo() {
           />
           <path
             d="M 16 32 Q 32 24 48 32"
-            stroke="url(#planjo-gradient)"
+            stroke="url(#planjo-sidebar-gradient-1)"
             strokeWidth="3.5"
             strokeLinecap="round"
             fill="none"
           />
           <path
             d="M 16 40 Q 32 32 48 40"
-            stroke="url(#planjo-gradient-2)"
+            stroke="url(#planjo-sidebar-gradient-2)"
             strokeWidth="3"
             strokeLinecap="round"
             fill="none"
