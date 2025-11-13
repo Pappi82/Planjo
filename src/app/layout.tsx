@@ -20,6 +20,17 @@ export const metadata: Metadata = {
   title: "Planjo · Flow operating system for ambitious builders",
   description:
     "Planjo keeps solo builders in flow with an addictive workspace that blends planning, focus, and momentum tracking.",
+  applicationName: "Planjo",
+  authors: [{ name: "Planjo" }],
+  keywords: ["project management", "productivity", "task management", "flow state", "solo developer", "kanban"],
+  manifest: "/manifest.json",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#0a0e24",
 };
 
 export default function RootLayout({

@@ -1,0 +1,27 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="planjo-gradient-192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6c6ff7;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8c6ff7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#38f8c7;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="bg-glow-192" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#0a0e24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#01010a;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="192" height="192" rx="42" fill="url(#bg-glow-192)"/>
+  
+  <!-- Ambient glow -->
+  <circle cx="96" cy="96" r="75" fill="url(#planjo-gradient-192)" opacity="0.12"/>
+  
+  <!-- Main P shape -->
+  <path d="M59 48 L59 144 L70 144 L70 102 L109 102 C126 102 139 90 139 72 C139 54 126 48 109 48 Z M70 60 L105 60 C117 60 127 62.5 127 72 C127 81.5 117 90 105 90 L70 90 Z" 
+        fill="url(#planjo-gradient-192)"/>
+  
+  <!-- Accent dot -->
+  <circle cx="139" cy="53" r="9" fill="#38f8c7" opacity="0.9"/>
+</svg>
+

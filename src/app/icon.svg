@@ -1,0 +1,28 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="planjo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6c6ff7;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8c6ff7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#38f8c7;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="glow" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle with gradient -->
+  <circle cx="32" cy="32" r="30" fill="url(#planjo-gradient)" opacity="0.15"/>
+  
+  <!-- Main P shape -->
+  <path d="M20 16 L20 48 L24 48 L24 34 L36 34 C42 34 46 30 46 24 C46 18 42 16 36 16 Z M24 20 L35 20 C38.5 20 42 21 42 24 C42 27 38.5 30 35 30 L24 30 Z" 
+        fill="url(#planjo-gradient)" 
+        stroke="url(#glow)" 
+        stroke-width="0.5"/>
+  
+  <!-- Accent dot (flow state indicator) -->
+  <circle cx="46" cy="18" r="3" fill="#38f8c7">
+    <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/>
+  </circle>
+</svg>
+
