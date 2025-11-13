@@ -51,7 +51,7 @@ export default function KanbanCard({ task, onClick, isDragging, accentColor }: K
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className={`group relative overflow-hidden rounded-[22px] border border-white/12 bg-white/[0.06] p-4 text-white shadow-[0_18px_36px_rgba(5,8,26,0.45)] transition-all duration-200 ${
+      className={`group relative flex-shrink-0 overflow-hidden rounded-[22px] border border-white/12 bg-white/[0.06] p-4 text-white shadow-[0_18px_36px_rgba(5,8,26,0.45)] transition-all duration-200 ${
         isBeingDragged ? 'scale-[1.02] ring-2 ring-white/20' : 'cursor-grab active:cursor-grabbing hover:-translate-y-1 hover:border-white/35 hover:bg-white/[0.1]'
       }`}
     >

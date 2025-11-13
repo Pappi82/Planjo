@@ -235,7 +235,7 @@ export default function BoardPage() {
       />
 
       <SectionSurface bleed>
-        <div className="h-[65vh] min-h-[520px]">
+        <div className="h-[80vh] min-h-[600px]">
           <KanbanBoard
             columns={columns}
             tasks={tasks}
