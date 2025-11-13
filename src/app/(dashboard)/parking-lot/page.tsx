@@ -145,11 +145,11 @@ export default function ParkingLotPage() {
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {items.map((item: IParkingLotItem) => (
               <IdeaCard
-                key={item._id}
+                key={item._id.toString()}
                 item={item}
                 onEdit={handleEdit}
                 onDelete={(id) => {
-                  const target = items.find((entry: IParkingLotItem) => entry._id === id);
+                  const target = items.find((entry: IParkingLotItem) => entry._id.toString() === id);
                   if (target) setPendingDelete(target);
                 }}
                 onConvert={setConvertItem}
