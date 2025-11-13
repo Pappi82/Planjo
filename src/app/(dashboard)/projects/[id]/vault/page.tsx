@@ -1,16 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { ComponentType, useState } from 'react';
 import { useParams } from 'next/navigation';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Plus, Key, Lock, Database, FileCode, MoreHorizontal, Sparkles } from 'lucide-react';
 import CredentialCard from '@/components/vault/CredentialCard';
 import CredentialForm from '@/components/vault/CredentialForm';
 import PasswordGenerator from '@/components/vault/PasswordGenerator';
 import { ICredential, CredentialCategory } from '@/types';
+import { PageHero } from '@/components/layout/PageHero';
+import { SectionSurface } from '@/components/layout/SectionSurface';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -26,6 +28,7 @@ export default function VaultPage() {
   const [generatorOpen, setGeneratorOpen] = useState(false);
   const [editingCredential, setEditingCredential] = useState<ICredential | undefined>();
   const [activeTab, setActiveTab] = useState<CredentialCategory>('api-key');
+  const [pendingDelete, setPendingDelete] = useState<ICredential | null>(null);
 
   const credentials: ICredential[] = data?.credentials || [];
 
@@ -56,14 +59,15 @@ export default function VaultPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this credential?')) return;
+  const handleDelete = async () => {
+    if (!pendingDelete) return;
 
-    const res = await fetch(`/api/credentials/${id}`, {
+    const res = await fetch(`/api/credentials/${pendingDelete._id}`, {
       method: 'DELETE',
     });
 
     if (res.ok) {
+      setPendingDelete(null);
       mutate();
     }
   };
@@ -79,92 +83,92 @@ export default function VaultPage() {
 
   if (error) {
     return (
-      <div className="p-8">
-        <Alert variant="destructive">
-          <AlertDescription>Failed to load credentials</AlertDescription>
-        </Alert>
+      <div className="p-8 text-white/70">
+        Failed to load credentials. Refresh to try again.
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="planjo-panel flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-6">
-        <div>
-          <h1 className="text-3xl font-semibold text-white">Secure vault</h1>
-          <p className="text-white/60">Store API keys, passwords, and sensitive project credentials.</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setGeneratorOpen(true)}>
-            <Sparkles className="mr-2 h-4 w-4" />
-            Generate password
-          </Button>
-          <Button
-            onClick={() => {
-              setEditingCredential(undefined);
-              setFormOpen(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add credential
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-10">
+      <PageHero
+        label="Vault"
+        title="Secure vault"
+        description="Store API keys, passwords, and sensitive credentials with encryption that never leaves your machine."
+        highlight={
+          <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.35em] text-white/60">
+            {credentials.length} secrets
+          </span>
+        }
+        actions={
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setGeneratorOpen(true)}
+              className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white"
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              Generate password
+            </Button>
+            <Button
+              className="rounded-full"
+              onClick={() => {
+                setEditingCredential(undefined);
+                setFormOpen(true);
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add credential
+            </Button>
+          </div>
+        }
+      />
 
-      <Alert className="border-white/15 bg-white/5 text-white">
-        <AlertDescription>
-          Credentials encrypt locally before syncing. The encryption key never leaves your device.
-        </AlertDescription>
-      </Alert>
+      <SectionSurface
+        title="Encryption memo"
+        description="Credentials encrypt locally before syncing. Your encryption key never leaves this device."
+      >
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as CredentialCategory)}
+          className="space-y-6"
+        >
+          <TabsList className="flex flex-wrap gap-2 rounded-full border border-white/15 bg-white/5 p-2">
+            <VaultTrigger icon={Key} value="api-key" label="API keys" />
+            <VaultTrigger icon={Lock} value="password" label="Passwords" />
+            <VaultTrigger icon={Database} value="database-url" label="Database URLs" />
+            <VaultTrigger icon={FileCode} value="env-var" label="Env variables" />
+            <VaultTrigger icon={MoreHorizontal} value="other" label="Other" />
+          </TabsList>
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as CredentialCategory)} className="space-y-4">
-        <TabsList className="bg-white/5 border border-white/10">
-          <TabsTrigger value="api-key" className="flex items-center gap-2">
-            <Key className="h-4 w-4" />
-            API keys
-          </TabsTrigger>
-          <TabsTrigger value="password" className="flex items-center gap-2">
-            <Lock className="h-4 w-4" />
-            Passwords
-          </TabsTrigger>
-          <TabsTrigger value="database-url" className="flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            Database URLs
-          </TabsTrigger>
-          <TabsTrigger value="env-var" className="flex items-center gap-2">
-            <FileCode className="h-4 w-4" />
-            Env variables
-          </TabsTrigger>
-          <TabsTrigger value="other" className="flex items-center gap-2">
-            <MoreHorizontal className="h-4 w-4" />
-            Other
-          </TabsTrigger>
-        </TabsList>
-
-        {categories.map((category) => {
-          const categoryCredentials = credentials.filter((cred) => cred.category === category);
-          return (
-            <TabsContent key={category} value={category} className="space-y-4">
-              {categoryCredentials.length === 0 ? (
-                <div className="rounded-3xl border border-dashed border-white/10 p-10 text-center text-white/60">
-                  No {category} credentials yet. Click &ldquo;Add credential&rdquo; to create one.
-                </div>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {categoryCredentials.map((credential) => (
-                    <CredentialCard
-                      key={credential._id.toString()}
-                      credential={credential}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                    />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-          );
-        })}
-      </Tabs>
+          {categories.map((category) => {
+            const categoryCredentials = credentials.filter((cred) => cred.category === category);
+            return (
+              <TabsContent key={category} value={category} className="space-y-4">
+                {categoryCredentials.length === 0 ? (
+                  <div className="rounded-[28px] border border-dashed border-white/12 bg-white/[0.03] p-10 text-center text-white/60">
+                    No {category} credentials yet. Launch one to keep this vault humming.
+                  </div>
+                ) : (
+                  <div className="grid gap-5 md:grid-cols-2">
+                    {categoryCredentials.map((credential) => (
+                      <CredentialCard
+                        key={credential._id.toString()}
+                        credential={credential}
+                        onEdit={handleEdit}
+                        onDelete={(id) => {
+                          const target = credentials.find((cred) => cred._id.toString() === id);
+                          if (target) setPendingDelete(target);
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            );
+          })}
+        </Tabs>
+      </SectionSurface>
 
       <CredentialForm
         credential={editingCredential}
@@ -178,6 +182,41 @@ export default function VaultPage() {
       />
 
       <PasswordGenerator open={generatorOpen} onClose={() => setGeneratorOpen(false)} onUse={handleUsePassword} />
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+        title="Delete credential"
+        description={
+          pendingDelete
+            ? `Delete "${pendingDelete.label}" from the vault? You’ll need to re-enter it if required later.`
+            : ''
+        }
+        confirmLabel="Delete"
+        cancelLabel="Keep credential"
+        tone="danger"
+        onConfirm={handleDelete}
+      />
     </div>
+  );
+}
+
+interface VaultTriggerProps {
+  icon: ComponentType<{ className?: string }>;
+  value: CredentialCategory;
+  label: string;
+}
+
+function VaultTrigger({ icon: Icon, value, label }: VaultTriggerProps) {
+  return (
+    <TabsTrigger
+      value={value}
+      className="data-[state=active]:bg-white/15 data-[state=active]:text-white flex items-center gap-2 rounded-full border border-transparent px-4 py-2 text-sm text-white/70 transition data-[state=active]:border-white/30 data-[state=active]:shadow-[0_0_0_1px_rgba(255,255,255,0.15)]"
+    >
+      <Icon className="h-4 w-4" />
+      {label}
+    </TabsTrigger>
   );
 }

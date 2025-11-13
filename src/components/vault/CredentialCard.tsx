@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ICredential } from '@/types';
@@ -30,53 +29,77 @@ export default function CredentialCard({ credential, onEdit, onDelete }: Credent
     : '••••••••••••';
 
   return (
-    <Card className="border-white/10 bg-white/5 p-0">
-      <CardHeader className="px-6 pt-6 pb-3">
-        <div className="flex items-start justify-between gap-3">
-          <CardTitle className="text-lg text-white flex items-center gap-2">
-            {credential.label}
-            {(credential as any).url && (
+    <div className="relative overflow-hidden rounded-[26px] border border-white/12 bg-white/[0.08] p-6 text-white shadow-[0_22px_44px_rgba(5,8,26,0.5)] transition hover:-translate-y-1 hover:border-white/35 hover:bg-white/[0.12]">
+      <div className="pointer-events-none absolute inset-0 opacity-40">
+        <div className="absolute -top-16 right-14 h-40 w-40 rounded-full bg-[#38f8c7]/20 blur-[110px]" />
+      </div>
+      <div className="relative z-10 space-y-4">
+        <header className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">{credential.label}</h3>
+            {(credential as any).url ? (
               <a
                 href={(credential as any).url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/60 hover:text-white"
+                className="text-white/60 transition hover:text-white"
               >
                 <ExternalLink className="h-4 w-4" />
               </a>
-            )}
-          </CardTitle>
-          <Badge variant="outline" className="text-xs uppercase tracking-[0.2em] text-white/70">
+            ) : null}
+          </div>
+          <Badge className="rounded-full border-white/20 bg-white/10 text-[0.65rem] uppercase tracking-[0.35em] text-white/70">
             {credential.category}
           </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3 px-6 pb-6">
+        </header>
+
         <div className="flex items-center gap-2">
-          <code className="flex-1 rounded-2xl border border-white/10 bg-[#05060f]/60 px-3 py-2 text-sm text-white">
+          <code className="flex-1 rounded-[18px] border border-white/15 bg-slate-950/60 px-4 py-2 text-sm tracking-wide">
             {displayValue}
           </code>
-          <Button size="icon" variant="ghost" onClick={() => setShowValue(!showValue)}>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="rounded-full border border-white/15 bg-white/10"
+            onClick={() => setShowValue(!showValue)}
+          >
             {showValue ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>
-          <Button size="icon" variant="ghost" onClick={handleCopy}>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="rounded-full border border-white/15 bg-white/10"
+            onClick={handleCopy}
+          >
             <Copy className="h-4 w-4" />
           </Button>
         </div>
 
-        {copied && <p className="text-xs text-[#38f8c7]">Copied to clipboard!</p>}
+        {copied ? <p className="text-xs text-[#38f8c7]">Copied to clipboard!</p> : null}
 
-        {credential.notes && <p className="text-sm text-white/70">{credential.notes}</p>}
+        {credential.notes ? (
+          <p className="text-sm text-white/70">{credential.notes}</p>
+        ) : null}
 
         <div className="flex gap-2">
-          <Button size="icon-sm" variant="ghost" onClick={() => onEdit(credential)}>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            className="rounded-full border border-white/15 bg-white/10"
+            onClick={() => onEdit(credential)}
+          >
             <Edit className="h-4 w-4" />
           </Button>
-          <Button size="icon-sm" variant="ghost" onClick={() => onDelete(credential._id.toString())}>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            className="rounded-full border border-white/15 bg-white/10 text-[#ff5c87] hover:text-[#ff5c87]"
+            onClick={() => onDelete(credential._id.toString())}
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

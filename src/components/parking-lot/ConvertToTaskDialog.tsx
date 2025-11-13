@@ -43,26 +43,26 @@ export default function ConvertToTaskDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-xl rounded-[24px] border-white/12 bg-slate-950/88">
         <DialogHeader>
-          <DialogTitle>Convert to Task</DialogTitle>
+          <DialogTitle>Convert idea to task</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-semibold mb-2">{item.title}</h3>
-            {item.description && (
-              <p className="text-sm text-muted-foreground">{item.description}</p>
-            )}
+        <div className="space-y-5 text-white">
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">{item.title}</h3>
+            {item.description ? (
+              <p className="text-sm text-white/60">{item.description}</p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
-            <Label>Select Project *</Label>
+            <Label>Select project *</Label>
             <Select value={projectId} onValueChange={setProjectId}>
-              <SelectTrigger>
+              <SelectTrigger className="rounded-full border-white/20 bg-white/5 text-white/80">
                 <SelectValue placeholder="Choose a project..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-[20px] border border-white/10 bg-slate-950/95 text-white">
                 {projects.map((project) => (
                   <SelectItem key={project._id.toString()} value={project._id.toString()}>
                     {project.title}
@@ -75,10 +75,10 @@ export default function ConvertToTaskDialog({
           <div className="space-y-2">
             <Label>Priority</Label>
             <Select value={priority} onValueChange={setPriority}>
-              <SelectTrigger>
-                <SelectValue />
+              <SelectTrigger className="rounded-full border-white/20 bg-white/5 text-white/80">
+                <SelectValue placeholder="Select priority" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-[20px] border border-white/10 bg-slate-950/95 text-white">
                 {TASK_PRIORITIES.map((p) => (
                   <SelectItem key={p.value} value={p.value}>
                     {p.label}
@@ -88,12 +88,12 @@ export default function ConvertToTaskDialog({
             </Select>
           </div>
 
-          <div className="flex gap-2">
-            <Button onClick={handleConvert} disabled={!projectId || loading}>
-              {loading ? 'Converting...' : 'Convert to Task'}
-            </Button>
-            <Button variant="outline" onClick={onClose}>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={onClose} className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white">
               Cancel
+            </Button>
+            <Button onClick={handleConvert} disabled={!projectId || loading} className="rounded-full">
+              {loading ? 'Converting…' : 'Convert to task'}
             </Button>
           </div>
         </div>

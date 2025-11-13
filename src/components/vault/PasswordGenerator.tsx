@@ -55,99 +55,79 @@ export default function PasswordGenerator({ open, onClose, onUse }: PasswordGene
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-lg rounded-[26px] border-white/12 bg-slate-950/90">
         <DialogHeader>
-          <DialogTitle>Password Generator</DialogTitle>
+          <DialogTitle>Password generator</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {password && (
+        <div className="space-y-6 text-white">
+          {password ? (
             <div className="space-y-2">
-              <Label>Generated Password</Label>
-              <div className="flex gap-2">
-                <code className="flex-1 bg-muted px-3 py-2 rounded text-sm font-mono break-all">
+              <Label>Generated password</Label>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 break-all rounded-[16px] border border-white/15 bg-white/5 px-4 py-2 text-sm font-mono text-white">
                   {password}
                 </code>
-                <Button size="icon" variant="ghost" onClick={handleCopy}>
+                <Button size="icon" variant="ghost" className="rounded-full border border-white/15 bg-white/10" onClick={handleCopy}>
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
-              {copied && (
-                <p className="text-xs text-green-600">Copied to clipboard!</p>
-              )}
+              {copied ? <p className="text-xs text-[#38f8c7]">Copied to clipboard!</p> : null}
             </div>
-          )}
+          ) : null}
 
           <div className="space-y-2">
-            <Label>Length: {length}</Label>
-            <Slider
-              value={[length]}
-              onValueChange={(value) => setLength(value[0])}
-              min={8}
-              max={64}
-              step={1}
-            />
+            <div className="flex items-center justify-between text-sm text-white/70">
+              <Label>Length</Label>
+              <span>{length}</span>
+            </div>
+            <Slider value={[length]} onValueChange={(value) => setLength(value[0])} min={8} max={64} step={1} className="planjo-slider" />
           </div>
 
           <div className="space-y-3">
-            <Label>Character Types</Label>
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="uppercase"
-                  checked={includeUppercase}
-                  onCheckedChange={(checked) => setIncludeUppercase(checked as boolean)}
-                />
-                <label htmlFor="uppercase" className="text-sm cursor-pointer">
-                  Uppercase (A-Z)
-                </label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="lowercase"
-                  checked={includeLowercase}
-                  onCheckedChange={(checked) => setIncludeLowercase(checked as boolean)}
-                />
-                <label htmlFor="lowercase" className="text-sm cursor-pointer">
-                  Lowercase (a-z)
-                </label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="numbers"
-                  checked={includeNumbers}
-                  onCheckedChange={(checked) => setIncludeNumbers(checked as boolean)}
-                />
-                <label htmlFor="numbers" className="text-sm cursor-pointer">
-                  Numbers (0-9)
-                </label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="symbols"
-                  checked={includeSymbols}
-                  onCheckedChange={(checked) => setIncludeSymbols(checked as boolean)}
-                />
-                <label htmlFor="symbols" className="text-sm cursor-pointer">
-                  Symbols (!@#$%...)
-                </label>
-              </div>
+            <Label>Character types</Label>
+            <div className="space-y-2 text-sm text-white/75">
+              <CharacterToggle label="Uppercase (A-Z)" id="uppercase" checked={includeUppercase} onCheckedChange={setIncludeUppercase} />
+              <CharacterToggle label="Lowercase (a-z)" id="lowercase" checked={includeLowercase} onCheckedChange={setIncludeLowercase} />
+              <CharacterToggle label="Numbers (0-9)" id="numbers" checked={includeNumbers} onCheckedChange={setIncludeNumbers} />
+              <CharacterToggle label="Symbols (!@#$%...)" id="symbols" checked={includeSymbols} onCheckedChange={setIncludeSymbols} />
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <Button onClick={generatePassword} className="flex-1">
-              <RefreshCw className="h-4 w-4 mr-2" />
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={generatePassword} className="flex-1 rounded-full">
+              <RefreshCw className="mr-2 h-4 w-4" />
               Generate
             </Button>
-            {password && (
-              <Button onClick={handleUse} variant="secondary">
-                Use This Password
+            {password ? (
+              <Button onClick={handleUse} variant="outline" className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white">
+                Use this password
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+interface CharacterToggleProps {
+  label: string;
+  id: string;
+  checked: boolean;
+  onCheckedChange: (value: boolean) => void;
+}
+
+function CharacterToggle({ label, id, checked, onCheckedChange }: CharacterToggleProps) {
+  return (
+    <label htmlFor={id} className="flex cursor-pointer items-center gap-2 rounded-[14px] border border-white/10 bg-white/5 px-3 py-2">
+      <Checkbox
+        id={id}
+        checked={checked}
+        onCheckedChange={(value) => onCheckedChange(!!value)}
+        className="border-white/30"
+      />
+      <span>{label}</span>
+    </label>
   );
 }

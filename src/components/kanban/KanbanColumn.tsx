@@ -81,13 +81,18 @@ export default function KanbanColumn({
   };
 
   return (
-    <div className="flex w-80 flex-shrink-0 flex-col h-full">
-      <div className={`flex flex-col rounded-3xl border p-5 backdrop-blur-xl h-full transition-all duration-200 ${
-        isOver
-          ? 'border-white/40 bg-white/10 shadow-lg'
-          : 'border-white/10 bg-white/5'
-      }`}>
-        <div className="flex items-start justify-between gap-2 flex-shrink-0">
+    <div className="flex h-full w-80 flex-shrink-0 flex-col">
+      <div
+        className={`relative flex h-full flex-col overflow-hidden rounded-[26px] border p-5 transition-all duration-200 ${
+          isOver
+            ? 'border-white/40 bg-white/12 shadow-[0_20px_40px_rgba(5,8,26,0.55)]'
+            : 'border-white/12 bg-white/[0.05] shadow-[0_16px_32px_rgba(5,8,26,0.45)]'
+        }`}
+      >
+        <div className="pointer-events-none absolute inset-0 opacity-40">
+          <div className="absolute -top-16 right-10 h-32 w-32 rounded-full bg-[#6f9eff]/25 blur-[100px]" />
+        </div>
+        <div className="relative z-10 flex items-start justify-between gap-2 flex-shrink-0">
           <div className="flex-1 min-w-0">
             {isEditing ? (
               <div className="flex items-center gap-2">
@@ -133,18 +138,21 @@ export default function KanbanColumn({
                 )}
               </div>
             )}
-            <p className="text-xs uppercase tracking-[0.3em] text-white/40">{tasks.length} tasks</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-white/45">{tasks.length} tasks</p>
           </div>
           <button
             onClick={onTaskCreate}
-            className="flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/70 transition hover:border-white/40 hover:text-white"
+            className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/70 transition hover:border-white/40 hover:text-white"
           >
             <Plus className="h-3 w-3" />
             Add
           </button>
         </div>
 
-        <div ref={setNodeRef} className="mt-4 flex flex-1 flex-col gap-3 overflow-y-auto pr-1 min-h-0">
+        <div
+          ref={setNodeRef}
+          className="relative mt-4 flex flex-1 flex-col gap-3 overflow-y-auto pr-1 min-h-0"
+        >
           <SortableContext
             items={tasks.map((t) => t._id.toString())}
             strategy={verticalListSortingStrategy}

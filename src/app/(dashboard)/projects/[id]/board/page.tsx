@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTasks, useColumns } from '@/hooks/useTasks';
@@ -10,7 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ITask } from '@/types';
-import { FolderKanban, FileText, Shield } from 'lucide-react';
+import { FileText, Shield } from 'lucide-react';
+import { PageHero } from '@/components/layout/PageHero';
+import { SectionSurface } from '@/components/layout/SectionSurface';
+import { useProjects } from '@/hooks/useProjects';
 
 export default function BoardPage() {
   const params = useParams();
@@ -18,6 +21,7 @@ export default function BoardPage() {
 
   const { tasks, mutate: mutateTasks } = useTasks(projectId);
   const { columns, mutate: mutateColumns } = useColumns(projectId);
+  const { projects } = useProjects();
 
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -182,54 +186,66 @@ export default function BoardPage() {
     }
   };
 
-  return (
-    <div className="flex flex-col h-full space-y-6">
-      <div className="planjo-panel flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-6 flex-shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-            <FolderKanban className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <p className="planjo-pill text-white/70">Flow board</p>
-            <h1 className="text-2xl font-semibold text-white">Active tasks</h1>
-            <p className="text-sm text-white/60">
-              Drag tickets, drop momentum, and keep work states visible.
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <Button
-            variant="secondary"
-            disabled={!columns.length}
-            onClick={() => columns.length && handleTaskCreate(columns[0].name)}
-          >
-            New task
-          </Button>
-          <Button asChild variant="outline">
-            <Link href={`/projects/${projectId}/docs`}>
-              <FileText className="mr-2 h-4 w-4" />
-              Docs
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href={`/projects/${projectId}/vault`}>
-              <Shield className="mr-2 h-4 w-4" />
-              Vault
-            </Link>
-          </Button>
-        </div>
-      </div>
+  const project = projects.find((p) => p._id.toString() === projectId);
+  const taskCount = tasks.length;
+  const activeColumn = columns.length;
 
-      <div className="rounded-3xl border border-white/10 bg-white/0 p-4 flex-1 min-h-0">
-        <KanbanBoard
-          columns={columns}
-          tasks={tasks}
-          onTaskMove={handleTaskMove}
-          onTaskClick={(task) => setSelectedTaskId(task._id.toString())}
-          onTaskCreate={handleTaskCreate}
-          onColumnRename={handleColumnRename}
-        />
-      </div>
+  return (
+    <div className="flex h-full flex-col space-y-10">
+      <PageHero
+        label="Flow board"
+        title={project?.title || 'Active tasks'}
+        description={
+          project?.description ||
+          'Drag tickets, drop momentum, and keep work states visible.'
+        }
+        highlight={
+          <div className="flex flex-wrap gap-3 text-xs">
+            <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 uppercase tracking-[0.35em] text-white/60">
+              {activeColumn} columns
+            </span>
+            <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 uppercase tracking-[0.35em] text-white/60">
+              {taskCount} tasks
+            </span>
+          </div>
+        }
+        actions={
+          <div className="flex flex-wrap gap-3">
+            <Button
+              className="rounded-full"
+              disabled={!columns.length}
+              onClick={() => columns.length && handleTaskCreate(columns[0].name)}
+            >
+              New task
+            </Button>
+            <Button asChild variant="outline" className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white">
+              <Link href={`/projects/${projectId}/docs`}>
+                <FileText className="mr-2 h-4 w-4" />
+                Docs
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white">
+              <Link href={`/projects/${projectId}/vault`}>
+                <Shield className="mr-2 h-4 w-4" />
+                Vault
+              </Link>
+            </Button>
+          </div>
+        }
+      />
+
+      <SectionSurface bleed>
+        <div className="h-[65vh] min-h-[520px]">
+          <KanbanBoard
+            columns={columns}
+            tasks={tasks}
+            onTaskMove={handleTaskMove}
+            onTaskClick={(task) => setSelectedTaskId(task._id.toString())}
+            onTaskCreate={handleTaskCreate}
+            onColumnRename={handleColumnRename}
+          />
+        </div>
+      </SectionSurface>
 
       <TaskDetail
         task={selectedTask}
@@ -241,9 +257,9 @@ export default function BoardPage() {
       />
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-xl rounded-[26px] border-white/12 bg-slate-950/90">
           <DialogHeader>
-            <DialogTitle>Create Task in {createColumnName}</DialogTitle>
+            <DialogTitle>Create task in {createColumnName}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
@@ -257,11 +273,11 @@ export default function BoardPage() {
               }}
               autoFocus
             />
-            <div className="flex gap-2">
-              <Button onClick={handleCreateTask}>Create</Button>
+            <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
                 Cancel
               </Button>
+              <Button onClick={handleCreateTask}>Create task</Button>
             </div>
           </div>
         </DialogContent>

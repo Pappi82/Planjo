@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -9,6 +9,9 @@ import { ProjectForm } from '@/components/projects/ProjectForm';
 import { useProjects } from '@/hooks/useProjects';
 import { Project } from '@/types';
 import { usePlanjoSound } from '@/components/providers/PlanjoExperienceProvider';
+import { PageHero } from '@/components/layout/PageHero';
+import { SectionSurface } from '@/components/layout/SectionSurface';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 export default function ProjectsPage() {
   const { projects, isLoading, mutate } = useProjects();
@@ -16,6 +19,7 @@ export default function ProjectsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [pendingArchive, setPendingArchive] = useState<Project | null>(null);
 
   const handleCreateProject = async (data: any) => {
     try {
@@ -51,12 +55,14 @@ export default function ProjectsPage() {
     }
   };
 
-  const handleArchiveProject = async (project: Project) => {
-    if (!confirm(`Are you sure you want to archive "${project.title}"?`)) return;
+  const handleArchiveProject = async () => {
+    if (!pendingArchive) return;
+    play('action');
     try {
-      const response = await fetch(`/api/projects/${project._id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/projects/${pendingArchive._id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to archive project');
       await mutate();
+      setPendingArchive(null);
     } catch (error) {
       console.error('Error archiving project:', error);
       alert('Failed to archive project');
@@ -68,40 +74,56 @@ export default function ProjectsPage() {
     setIsEditDialogOpen(true);
   };
 
-  return (
-    <div className="space-y-8">
-      <div className="planjo-panel flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-8 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="planjo-pill text-white/70">Projects</p>
-          <h1 className="mt-3 text-3xl font-semibold text-white">Launchpads</h1>
-          <p className="text-white/60">
-            Curate active bets, drag tickets, and keep your solo pipeline addictive.
-          </p>
-        </div>
-        <Button
-          onClick={() => {
-            play('action');
-            setIsCreateDialogOpen(true);
-          }}
-          className="self-start"
-        >
-          <Plus className="h-4 w-4" />
-          New project
-        </Button>
-      </div>
+  const activeCount = useMemo(
+    () => projects.filter((project) => project.status === 'active').length,
+    [projects]
+  );
 
-      <div>
+  return (
+    <div className="space-y-10">
+      <PageHero
+        label="Projects"
+        title="Launchpads"
+        description="Curate active bets, drag tickets, and keep your solo pipeline addictive."
+        actions={
+          <Button
+            onClick={() => {
+              play('action');
+              setIsCreateDialogOpen(true);
+            }}
+            className="self-start rounded-full"
+          >
+            <Plus className="h-4 w-4" />
+            Launch project
+          </Button>
+        }
+        meta={
+          <div className="space-y-1 text-right sm:text-left">
+            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Active</p>
+            <p className="text-sm text-white">{activeCount} running orbits</p>
+          </div>
+        }
+      />
+
+      <SectionSurface
+        title="Your constellation"
+        description="Pin your current initiatives. Drift between boards, docs, and vault without losing the glow."
+      >
         {isLoading ? (
-          <div className="planjo-panel border border-white/10 p-10 text-center text-white/60">
-            Loading current initiatives...
+          <div className="flex h-48 flex-col items-center justify-center gap-3 rounded-[24px] border border-dashed border-white/12 bg-white/[0.03] text-white/60">
+            <span className="text-sm">Loading current initiatives...</span>
           </div>
         ) : (
-          <ProjectGrid projects={projects} onEdit={openEditDialog} onArchive={handleArchiveProject} />
+          <ProjectGrid
+            projects={projects}
+            onEdit={openEditDialog}
+            onArchive={(project) => setPendingArchive(project)}
+          />
         )}
-      </div>
+      </SectionSurface>
 
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
           </DialogHeader>
@@ -110,7 +132,7 @@ export default function ProjectsPage() {
       </Dialog>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
           </DialogHeader>
@@ -124,6 +146,23 @@ export default function ProjectsPage() {
           />
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!pendingArchive}
+        onOpenChange={(next) => {
+          if (!next) setPendingArchive(null);
+        }}
+        title="Archive project"
+        description={
+          pendingArchive
+            ? `Archive "${pendingArchive.title}"? You can restore it later from the vault.`
+            : ''
+        }
+        confirmLabel="Archive"
+        cancelLabel="Keep project"
+        tone="danger"
+        onConfirm={handleArchiveProject}
+      />
     </div>
   );
 }

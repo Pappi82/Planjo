@@ -12,6 +12,7 @@ import { TASK_PRIORITIES } from '@/lib/constants';
 import SubtaskList from './SubtaskList';
 import { Trash2, Focus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface TaskDetailProps {
   task: ITask | null;
@@ -34,6 +35,7 @@ export default function TaskDetail({
   const [formData, setFormData] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   // Initialize form data when task changes or dialog opens
   useEffect(() => {
@@ -91,14 +93,13 @@ export default function TaskDetail({
   };
 
   const handleDelete = async () => {
-    if (confirm('Are you sure you want to delete this task?')) {
-      setLoading(true);
-      try {
-        await onDelete(task._id.toString());
-        onClose();
-      } finally {
-        setLoading(false);
-      }
+    setLoading(true);
+    try {
+      await onDelete(task._id.toString());
+      setConfirmDeleteOpen(false);
+      onClose();
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -115,7 +116,7 @@ export default function TaskDetail({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-[28px] border-white/12 bg-slate-950/85">
         <DialogHeader>
           <DialogTitle>Task Details</DialogTitle>
 
@@ -233,7 +234,7 @@ export default function TaskDetail({
             <Button
               variant="destructive"
               size="icon"
-              onClick={handleDelete}
+              onClick={() => setConfirmDeleteOpen(true)}
               className={!hasChanges ? 'ml-auto' : ''}
               disabled={loading}
             >
@@ -242,6 +243,17 @@ export default function TaskDetail({
           </div>
         </div>
       </DialogContent>
+
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        onOpenChange={(open) => setConfirmDeleteOpen(open)}
+        title="Delete task"
+        description={`Delete "${task.title}"? All subtasks will be removed as well.`}
+        confirmLabel="Delete"
+        cancelLabel="Keep task"
+        tone="danger"
+        onConfirm={handleDelete}
+      />
     </Dialog>
   );
 }

@@ -1,7 +1,5 @@
 'use client';
 
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-
 interface ProductivityHeatmapProps {
   hourlyActivity: { [hour: number]: number };
 }
@@ -20,28 +18,28 @@ export default function ProductivityHeatmap({ hourlyActivity }: ProductivityHeat
   };
 
   return (
-    <Card className="border-white/10 bg-white/5">
-      <CardHeader>
-        <CardTitle className="text-white">Most productive hours</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-6 gap-3 sm:grid-cols-12">
-          {hours.map((hour) => {
-            const count = hourlyActivity[hour] || 0;
-            return (
-              <div key={hour} className="flex flex-col items-center gap-1 text-white/60">
-                <div
-                  className={`flex h-12 w-full flex-col items-center justify-center rounded-2xl border border-white/10 text-xs font-semibold text-white ${getColor(count)}`}
-                  title={`${hour}:00 - ${count} activities`}
-                >
-                  {count > 0 ? count : '—'}
-                </div>
-                <span className="text-[0.6rem] uppercase tracking-[0.3em]">{hour}</span>
+    <div className="relative overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.04] p-4 shadow-[0_20px_46px_rgba(5,8,26,0.45)]">
+      <div className="pointer-events-none absolute inset-0 opacity-40">
+        <div className="absolute -top-12 left-16 h-32 w-32 rounded-full bg-[#38f8c7]/25 blur-[90px]" />
+      </div>
+      <div className="relative z-10 grid grid-cols-6 gap-3 sm:grid-cols-12">
+        {hours.map((hour) => {
+          const count = hourlyActivity[hour] || 0;
+          return (
+            <div key={hour} className="flex flex-col items-center gap-1 text-white/60">
+              <div
+                className={`flex h-14 w-full flex-col items-center justify-center rounded-2xl border border-white/12 text-sm font-semibold text-white ${getColor(
+                  count
+                )}`}
+                title={`${hour}:00 • ${count} activities`}
+              >
+                {count > 0 ? count : '—'}
               </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+              <span className="text-[0.6rem] uppercase tracking-[0.3em]">{hour}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

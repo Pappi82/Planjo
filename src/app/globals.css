@@ -191,6 +191,70 @@
   transform: scale(1.08);
 }
 
+.planjo-journal-editor .w-md-editor {
+  background: rgba(8, 12, 32, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--foreground);
+}
+
+.planjo-journal-editor .w-md-editor-toolbar {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.planjo-journal-editor .w-md-editor-toolbar li button {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.planjo-journal-editor .w-md-editor-content {
+  background: transparent;
+}
+
+.planjo-journal-editor .w-md-editor-text-pre > code,
+.planjo-journal-editor .w-md-editor-text-input {
+  color: rgba(248, 251, 255, 0.85);
+}
+
+.planjo-journal-editor .w-md-editor-text-input {
+  background: transparent;
+}
+
+.planjo-journal-editor .w-md-editor-toolbar li button:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.planjo-doc-editor .w-md-editor {
+  background: rgba(8, 12, 32, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--foreground);
+}
+
+.planjo-doc-editor .w-md-editor-toolbar {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.planjo-doc-editor .w-md-editor-toolbar li button {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.planjo-doc-editor .w-md-editor-content {
+  background: transparent;
+}
+
+.planjo-doc-editor .w-md-editor-text-pre > code,
+.planjo-doc-editor .w-md-editor-text-input {
+  color: rgba(248, 251, 255, 0.85);
+}
+
+.planjo-doc-editor .w-md-editor-text-input {
+  background: transparent;
+}
+
+.planjo-doc-editor .w-md-editor-toolbar li button:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
 @keyframes planjoDrift {
   0% {
     transform: translate3d(0, 0, 0) rotate(0deg);

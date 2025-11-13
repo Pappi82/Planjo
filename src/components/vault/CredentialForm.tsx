@@ -59,46 +59,45 @@ export default function CredentialForm({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl rounded-[26px] border-white/12 bg-slate-950/90">
         <DialogHeader>
-          <DialogTitle>
-            {credential ? 'Edit Credential' : 'Add New Credential'}
-          </DialogTitle>
+          <DialogTitle>{credential ? 'Edit credential' : 'Add new credential'}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="category">Category *</Label>
-            <Select
-              value={formData.category}
-              onValueChange={(value) => setFormData({ ...formData, category: value as any })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CREDENTIAL_CATEGORIES_ARRAY.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <form onSubmit={handleSubmit} className="space-y-5 text-white">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="category">Category *</Label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => setFormData({ ...formData, category: value as any })}
+              >
+                <SelectTrigger className="rounded-full border-white/20 bg-white/5 text-white/80">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent className="rounded-[20px] border border-white/10 bg-slate-950/95 text-white">
+                  {CREDENTIAL_CATEGORIES_ARRAY.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="label">Label *</Label>
+              <Input
+                id="label"
+                value={formData.label}
+                onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                placeholder="e.g., OpenAI API Key"
+                required
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="label">Label *</Label>
-            <Input
-              id="label"
-              value={formData.label}
-              onChange={(e) => setFormData({ ...formData, label: e.target.value })}
-              placeholder="e.g., OpenAI API Key, Database Password"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="value">Value * {credential && '(leave empty to keep current)'}</Label>
+            <Label htmlFor="value">Value * {credential ? '(leave empty to keep current)' : ''}</Label>
             <Input
               id="value"
               type="password"
@@ -109,34 +108,35 @@ export default function CredentialForm({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="url">URL (optional)</Label>
-            <Input
-              id="url"
-              type="url"
-              value={formData.url}
-              onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-              placeholder="https://example.com"
-            />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="url">URL (optional)</Label>
+              <Input
+                id="url"
+                type="url"
+                value={formData.url}
+                onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                placeholder="https://example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Additional info, rotation cadence, etc."
+                rows={3}
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Additional information..."
-              rows={3}
-            />
-          </div>
-
-          <div className="flex gap-2">
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : credential ? 'Update' : 'Add'} Credential
-            </Button>
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onClose} className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white">
               Cancel
+            </Button>
+            <Button type="submit" disabled={loading} className="rounded-full">
+              {loading ? 'Saving...' : credential ? 'Update credential' : 'Add credential'}
             </Button>
           </div>
         </form>
