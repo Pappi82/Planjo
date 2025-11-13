@@ -11,7 +11,7 @@ interface PageHeroProps {
 
 export function PageHero({ label, title, description, highlight, actions, meta }: PageHeroProps) {
   return (
-    <section className="relative overflow-hidden rounded-[32px] border border-white/12 bg-white/[0.05] p-8 text-white shadow-[0_26px_60px_rgba(2,4,12,0.55)]">
+    <section className="relative overflow-hidden rounded-[28px] border border-white/12 bg-white/[0.05] p-6 text-white shadow-[0_26px_60px_rgba(2,4,12,0.55)] sm:rounded-[32px] sm:p-8">
       <div className="pointer-events-none absolute inset-0 opacity-70">
         <div className="absolute -top-32 right-0 h-60 w-60 rounded-full bg-[#6f9eff]/25 blur-[120px]" />
         <div className="absolute bottom-0 left-0 h-72 w-72 rounded-full bg-[#ff5c87]/20 blur-[140px]" />

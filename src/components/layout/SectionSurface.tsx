@@ -17,7 +17,7 @@ export function SectionSurface({
 }: SectionSurfaceProps) {
   return (
     <section
-      className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.04] p-6 text-white shadow-[0_24px_48px_rgba(4,7,24,0.5)]"
+      className="relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.04] p-5 text-white shadow-[0_24px_48px_rgba(4,7,24,0.5)] sm:rounded-[28px] sm:p-6"
       data-bleed={bleed}
     >
       <div className="pointer-events-none absolute inset-0 opacity-50">
