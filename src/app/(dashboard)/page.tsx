@@ -758,8 +758,6 @@ function ProjectConstellation({
     );
   }
 
-  const [primary, ...rest] = projects;
-
   return (
     <section className="relative overflow-hidden rounded-[32px] border border-white/12 bg-gradient-to-br from-white/[0.08] via-slate-900/60 to-slate-950/80 p-8 text-white shadow-[0_26px_60px_rgba(15,23,42,0.55)]">
       <div className="pointer-events-none absolute inset-0 opacity-70">
@@ -782,34 +780,30 @@ function ProjectConstellation({
         </div>
       </div>
 
-      <div className="relative z-10 mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <ProjectPrimaryCard project={primary} stat={statsMap[primary._id.toString()]} />
-        <div className="grid gap-4 sm:grid-cols-2">
-          {rest.length === 0 ? (
-            <div className="col-span-full rounded-2xl border border-dashed border-white/20 bg-white/[0.02] p-6 text-sm text-white/60">
-              Rotate in another project or flag a backlog to fill the constellation.
-            </div>
-          ) : (
-            rest.map((project) => (
-              <ProjectSatelliteCard
-                key={project._id.toString()}
-                project={project}
-                stat={statsMap[project._id.toString()]}
-              />
-            ))
-          )}
+      <div className="relative z-10 mt-8">
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {projects.map((project, index) => (
+            <ProjectConstellationCard
+              key={project._id.toString()}
+              project={project}
+              stat={statsMap[project._id.toString()]}
+              isPrimary={index === 0}
+            />
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
-function ProjectPrimaryCard({
+function ProjectConstellationCard({
   project,
   stat,
+  isPrimary,
 }: {
   project: Project;
   stat?: ProjectDashboardStat;
+  isPrimary: boolean;
 }) {
   const accent = project.colorTheme || '#6f9eff';
   const statusInfo = PROJECT_STATUSES[project.status as keyof typeof PROJECT_STATUSES];
@@ -826,7 +820,7 @@ function ProjectPrimaryCard({
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-60 transition-opacity duration-500 group-hover:opacity-90"
-        style={{ background: `linear-gradient(135deg, ${accent}1f 0%, transparent 70%)` }}
+        style={{ background: `linear-gradient(135deg, ${accent}${isPrimary ? '26' : '1f'} 0%, transparent 70%)` }}
       />
       <div className="relative z-10 flex flex-1 flex-col justify-between gap-6">
         <div className="space-y-4">
@@ -861,57 +855,6 @@ function ProjectPrimaryCard({
                 style={{ width: `${completion}%`, background: accent }}
               />
             </div>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function ProjectSatelliteCard({
-  project,
-  stat,
-}: {
-  project: Project;
-  stat?: ProjectDashboardStat;
-}) {
-  const accent = project.colorTheme || '#8c6ff7';
-  const statusInfo = PROJECT_STATUSES[project.status as keyof typeof PROJECT_STATUSES];
-  const completion = stat ? Math.round((stat.completionRate || 0) * 100) : 0;
-
-  return (
-    <Link
-      href={`/projects/${project._id.toString()}/board`}
-      className="group relative flex flex-col gap-4 overflow-hidden rounded-[22px] border border-white/12 bg-white/[0.04] p-5 text-left text-white shadow-[0_18px_36px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:border-white/40 hover:bg-white/[0.08]"
-      style={{ borderColor: `${accent}2a` }}
-    >
-      <div
-        className="pointer-events-none absolute inset-0 opacity-60 transition-opacity duration-500 group-hover:opacity-90"
-        style={{ background: `linear-gradient(135deg, ${accent}18 0%, transparent 75%)` }}
-      />
-      <div className="relative z-10 space-y-4">
-        <div className="flex items-start justify-between gap-3">
-          <p className="text-sm font-semibold text-white line-clamp-2">{project.title}</p>
-          <Badge
-            style={{ color: accent, borderColor: `${accent}55` }}
-            className="bg-transparent text-[0.6rem]"
-          >
-            {statusInfo?.label || '—'}
-          </Badge>
-        </div>
-        <p className="text-xs text-white/60 line-clamp-3">
-          {project.description || 'Document the mission and next moves to keep this project in motion.'}
-        </p>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-[0.7rem] text-white/60">
-            <span>{stat ? `${stat.completedTasks}/${stat.totalTasks} tasks` : 'No tasks yet'}</span>
-            <span className="text-white/80">{completion}%</span>
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/12">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${completion}%`, background: accent }}
-            />
           </div>
         </div>
       </div>
