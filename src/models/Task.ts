@@ -97,6 +97,9 @@ const TaskSchema = new Schema<ITask>(
     completedAt: {
       type: Date,
     },
+    archivedAt: {
+      type: Date,
+    },
     vibeNotes: {
       type: String,
       default: '',
@@ -112,6 +115,8 @@ TaskSchema.index({ projectId: 1, columnId: 1, order: 1 });
 TaskSchema.index({ projectId: 1, status: 1, position: 1 });
 TaskSchema.index({ userId: 1, dueDate: 1 });
 TaskSchema.index({ dueDate: 1 });
+TaskSchema.index({ archivedAt: 1 });
+TaskSchema.index({ userId: 1, archivedAt: 1, completedAt: 1 });
 
 const Task: Model<ITask> = mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);
 

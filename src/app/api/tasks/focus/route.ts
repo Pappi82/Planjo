@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import Task from '@/models/Task';
+import Project from '@/models/Project';
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,9 +17,25 @@ export async function GET(request: NextRequest) {
 
     await dbConnect();
 
+    // Get all non-archived projects for this user
+    const activeProjects = await Project.find({
+      userId: session.user.id,
+      archivedAt: null,
+    }).select('_id').lean();
+
+    const activeProjectIds = activeProjects.map((p) => p._id);
+
+    // Get tasks that:
+    // 1. Belong to the user
+    // 2. Are not completed
+    // 3. Are not archived
+    // 4. Belong to active (non-archived) projects
+    // 5. Are not subtasks (parentTaskId is null or doesn't exist)
     const tasks = await Task.find({
       userId: session.user.id,
       completedAt: null,
+      archivedAt: null,
+      projectId: { $in: activeProjectIds },
       $or: [{ parentTaskId: null }, { parentTaskId: { $exists: false } }],
     })
       .select('title priority dueDate projectId _id')

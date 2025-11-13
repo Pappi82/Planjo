@@ -41,9 +41,10 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Query for tasks - temporarily not filtering by userId to handle legacy data
+    // Query for tasks - exclude archived tasks
     const tasks = await Task.find({
       projectId,
+      archivedAt: null,
       $or: [
         { parentTaskId: null },
         { parentTaskId: { $exists: false } }
@@ -52,11 +53,12 @@ export async function GET(request: NextRequest) {
 
     console.log(`Query returned ${tasks.length} tasks`);
 
-    // Get subtasks for each task
+    // Get subtasks for each task (excluding archived subtasks)
     const tasksWithSubtasks = await Promise.all(
       tasks.map(async (task) => {
         const subtasks = await Task.find({
           parentTaskId: task._id,
+          archivedAt: null,
         }).sort({ position: 1 });
 
         return {

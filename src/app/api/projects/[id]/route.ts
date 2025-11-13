@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import Project from '@/models/Project';
+import Task from '@/models/Task';
 
 // GET /api/projects/[id] - Get a single project
 export async function GET(
@@ -110,6 +111,13 @@ export async function DELETE(
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
+
+    // Archive all tasks belonging to this project
+    const archiveDate = new Date();
+    await Task.updateMany(
+      { projectId: params.id },
+      { archivedAt: archiveDate }
+    );
 
     return NextResponse.json({ message: 'Project archived successfully' }, { status: 200 });
   } catch (error: any) {
