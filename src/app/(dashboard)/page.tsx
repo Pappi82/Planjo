@@ -781,7 +781,7 @@ function ProjectConstellation({
       </div>
 
       <div className="relative z-10 mt-8">
-        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2">
           {projects.map((project, index) => (
             <ProjectConstellationCard
               key={project._id.toString()}
