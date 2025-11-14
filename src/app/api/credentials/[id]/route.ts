@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import Credential from '@/models/Credential';
+import { encrypt } from '@/lib/encryption';
 
 // PUT update credential
 export async function PUT(
@@ -19,6 +20,12 @@ export async function PUT(
     const body = await request.json();
 
     await dbConnect();
+
+    // If a new value is provided, encrypt it
+    if (body.value) {
+      body.encryptedValue = encrypt(body.value);
+      delete body.value; // Remove plain value from body
+    }
 
     const credential = await Credential.findOneAndUpdate(
       { _id: id, userId: session.user.id },

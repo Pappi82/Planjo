@@ -85,19 +85,19 @@ export const DEFAULT_KANBAN_COLUMNS = [
 ];
 
 export const CREDENTIAL_CATEGORIES = {
-  API_KEY: 'API Key',
-  PASSWORD: 'Password',
-  DATABASE_URL: 'Database URL',
-  ENV_VARIABLE: 'Env Variable',
-  OTHER: 'Other',
+  API_KEY: 'api-key',
+  PASSWORD: 'password',
+  DATABASE_URL: 'database-url',
+  ENV_VARIABLE: 'env-var',
+  OTHER: 'other',
 };
 
 export const CREDENTIAL_CATEGORIES_ARRAY = [
-  { value: 'API Key', label: 'API Key' },
-  { value: 'Password', label: 'Password' },
-  { value: 'Database URL', label: 'Database URL' },
-  { value: 'Env Variable', label: 'Env Variable' },
-  { value: 'Other', label: 'Other' },
+  { value: 'api-key', label: 'API Key' },
+  { value: 'password', label: 'Password' },
+  { value: 'database-url', label: 'Database URL' },
+  { value: 'env-var', label: 'Env Variable' },
+  { value: 'other', label: 'Other' },
 ];
 
 export const MOOD_OPTIONS = {

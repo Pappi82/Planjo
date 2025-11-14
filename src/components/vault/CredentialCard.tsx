@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ICredential } from '@/types';
-import { decrypt } from '@/lib/encryption';
 import { Copy, Eye, EyeOff, Edit, Trash2, ExternalLink } from 'lucide-react';
 
 interface CredentialCardProps {
@@ -17,16 +16,16 @@ export default function CredentialCard({ credential, onEdit, onDelete }: Credent
   const [showValue, setShowValue] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // The credential now includes decryptedValue from the server
+  const decryptedValue = (credential as any).decryptedValue || '';
+
   const handleCopy = () => {
-    const decryptedValue = decrypt(credential.encryptedValue);
     navigator.clipboard.writeText(decryptedValue);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const displayValue = showValue
-    ? decrypt(credential.encryptedValue)
-    : '••••••••••••';
+  const displayValue = showValue ? decryptedValue : '••••••••••••';
 
   return (
     <div className="relative overflow-hidden rounded-[26px] border border-white/12 bg-white/[0.08] p-6 text-white shadow-[0_22px_44px_rgba(5,8,26,0.5)] transition hover:-translate-y-1 hover:border-white/35 hover:bg-white/[0.12]">

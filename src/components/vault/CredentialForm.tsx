@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ICredential } from '@/types';
-import { encrypt } from '@/lib/encryption';
 import { CREDENTIAL_CATEGORIES_ARRAY } from '@/lib/constants';
 
 interface CredentialFormProps {
@@ -40,13 +39,12 @@ export default function CredentialForm({
     setLoading(true);
 
     try {
-      const encryptedValue = formData.value ? encrypt(formData.value) : credential?.encryptedValue;
-
+      // Send plain value to server - encryption happens server-side
       await onSubmit({
         projectId,
         category: formData.category,
         label: formData.label,
-        encryptedValue,
+        value: formData.value, // Send plain value instead of encryptedValue
         url: formData.url,
         notes: formData.notes,
       });

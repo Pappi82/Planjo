@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import Credential from '@/models/Credential';
+import { encrypt, decrypt } from '@/lib/encryption';
 
 // GET all credentials for a project
 export async function GET(request: NextRequest) {
@@ -29,7 +30,13 @@ export async function GET(request: NextRequest) {
       userId: session.user.id,
     }).sort({ createdAt: -1 });
 
-    return NextResponse.json({ credentials });
+    // Decrypt values on the server before sending to client
+    const decryptedCredentials = credentials.map((cred) => ({
+      ...cred.toObject(),
+      decryptedValue: decrypt(cred.encryptedValue),
+    }));
+
+    return NextResponse.json({ credentials: decryptedCredentials });
   } catch (error) {
     console.error('Get credentials error:', error);
     return NextResponse.json(
@@ -47,10 +54,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { projectId, category, label, encryptedValue, url, notes } =
+    const { projectId, category, label, value, url, notes } =
       await request.json();
 
-    if (!projectId || !label || !encryptedValue || !category) {
+    if (!projectId || !label || !value || !category) {
       return NextResponse.json(
         { error: 'Required fields missing' },
         { status: 400 }
@@ -59,12 +66,15 @@ export async function POST(request: NextRequest) {
 
     await dbConnect();
 
+    // Encrypt the value on the server-side
+    const encryptedValue = encrypt(value);
+
     const credential = await Credential.create({
       userId: session.user.id,
       projectId,
       category,
       label,
-      encryptedValue, // Already encrypted on client-side
+      encryptedValue,
       url,
       notes,
     });
