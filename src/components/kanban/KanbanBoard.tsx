@@ -96,7 +96,27 @@ export default function KanbanBoard({
     }
   };
 
-  const getTasksForColumn = (columnName: string) => tasks.filter((task) => task.status === columnName);
+  const getTasksForColumn = (columnName: string) => {
+    const priorityOrder: Record<string, number> = {
+      urgent: 4,
+      high: 3,
+      medium: 2,
+      low: 1,
+    };
+
+    return tasks
+      .filter((task) => task.status === columnName)
+      .sort((a, b) => {
+        // Sort by priority first (highest priority first)
+        const aPriority = priorityOrder[a.priority] ?? 0;
+        const bPriority = priorityOrder[b.priority] ?? 0;
+        if (aPriority !== bPriority) {
+          return bPriority - aPriority; // Descending order (urgent first)
+        }
+        // Then by position (ascending order)
+        return a.position - b.position;
+      });
+  };
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
