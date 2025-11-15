@@ -146,6 +146,23 @@ export interface ICredential extends Document {
 }
 
 // ============================================================================
+// VAULT FILE
+// ============================================================================
+
+export interface IVaultFile extends Document {
+  _id: Types.ObjectId;
+  projectId: Types.ObjectId;
+  userId: Types.ObjectId;
+  filename: string;
+  encryptedContent: string;
+  mimeType?: string;
+  size: number;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ============================================================================
 // DOCUMENT
 // ============================================================================
 
@@ -203,6 +220,7 @@ export type Task = Omit<ITask, keyof Omit<Document, '_id'>>;
 export type Subtask = ISubtask;
 export type ParkingLotItem = Omit<IParkingLotItem, keyof Document>;
 export type Credential = Omit<ICredential, keyof Document>;
+export type VaultFile = Omit<IVaultFile, keyof Document>;
 export type DocumentType = Omit<IDocument, keyof Document>;
 export type JournalEntry = Omit<IJournalEntry, keyof Document>;
 export type ActivityLog = Omit<IActivityLog, keyof Document> & { _id?: string };

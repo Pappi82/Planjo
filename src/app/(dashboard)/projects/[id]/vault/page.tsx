@@ -5,11 +5,13 @@ import { useParams } from 'next/navigation';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Key, Lock, Database, FileCode, MoreHorizontal, Sparkles } from 'lucide-react';
+import { Plus, Key, Lock, Database, FileCode, MoreHorizontal, Sparkles, File } from 'lucide-react';
 import CredentialCard from '@/components/vault/CredentialCard';
 import CredentialForm from '@/components/vault/CredentialForm';
+import FileCard from '@/components/vault/FileCard';
+import FileForm from '@/components/vault/FileForm';
 import PasswordGenerator from '@/components/vault/PasswordGenerator';
-import { ICredential, CredentialCategory } from '@/types';
+import { ICredential, IVaultFile, CredentialCategory } from '@/types';
 import { PageHero } from '@/components/layout/PageHero';
 import { SectionSurface } from '@/components/layout/SectionSurface';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -23,14 +25,22 @@ export default function VaultPage() {
   const projectId = params.id as string;
 
   const { data, error, mutate } = useSWR(`/api/credentials?projectId=${projectId}`, fetcher);
+  const { data: filesData, error: filesError, mutate: mutateFiles } = useSWR(
+    `/api/vault-files?projectId=${projectId}`,
+    fetcher
+  );
 
   const [formOpen, setFormOpen] = useState(false);
+  const [fileFormOpen, setFileFormOpen] = useState(false);
   const [generatorOpen, setGeneratorOpen] = useState(false);
   const [editingCredential, setEditingCredential] = useState<ICredential | undefined>();
-  const [activeTab, setActiveTab] = useState<CredentialCategory>('api-key');
+  const [editingFile, setEditingFile] = useState<IVaultFile | undefined>();
+  const [activeTab, setActiveTab] = useState<CredentialCategory | 'files'>('files');
   const [pendingDelete, setPendingDelete] = useState<ICredential | null>(null);
+  const [pendingDeleteFile, setPendingDeleteFile] = useState<IVaultFile | null>(null);
 
   const credentials: ICredential[] = data?.credentials || [];
+  const files: IVaultFile[] = filesData?.files || [];
 
   const handleCreate = async (credentialData: any) => {
     const res = await fetch('/api/credentials', {
@@ -81,23 +91,71 @@ export default function VaultPage() {
     setGeneratorOpen(false);
   };
 
-  if (error) {
+  // File handlers
+  const handleCreateFile = async (fileData: any) => {
+    const res = await fetch('/api/vault-files', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fileData),
+    });
+
+    if (res.ok) {
+      mutateFiles();
+    }
+  };
+
+  const handleUpdateFile = async (fileData: any) => {
+    if (!editingFile) return;
+
+    const res = await fetch(`/api/vault-files/${editingFile._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fileData),
+    });
+
+    if (res.ok) {
+      mutateFiles();
+      setEditingFile(undefined);
+    }
+  };
+
+  const handleDeleteFile = async () => {
+    if (!pendingDeleteFile) return;
+
+    const res = await fetch(`/api/vault-files/${pendingDeleteFile._id}`, {
+      method: 'DELETE',
+    });
+
+    if (res.ok) {
+      setPendingDeleteFile(null);
+      mutateFiles();
+    }
+  };
+
+  const handleEditFile = (file: IVaultFile) => {
+    setEditingFile(file);
+    setFileFormOpen(true);
+  };
+
+  if (error || filesError) {
     return (
       <div className="p-8 text-white/70">
-        Failed to load credentials. Refresh to try again.
+        Failed to load vault data. Refresh to try again.
       </div>
     );
   }
+
+  const totalSecrets = credentials.length + files.length;
 
   return (
     <div className="space-y-10">
       <PageHero
         label="Vault"
         title="Secure vault"
-        description="Store API keys, passwords, and sensitive credentials with encryption that never leaves your machine."
+        description="Store API keys, passwords, sensitive credentials, and files like .env with encryption that never leaves your machine."
         highlight={
           <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.35em] text-white/60">
-            {credentials.length} secrets
+            {totalSecrets} secrets
           </span>
         }
         actions={
@@ -109,6 +167,17 @@ export default function VaultPage() {
             >
               <Sparkles className="mr-2 h-4 w-4" />
               Generate password
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditingFile(undefined);
+                setFileFormOpen(true);
+              }}
+              className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add file
             </Button>
             <Button
               className="rounded-full"
@@ -130,16 +199,39 @@ export default function VaultPage() {
       >
         <Tabs
           value={activeTab}
-          onValueChange={(value) => setActiveTab(value as CredentialCategory)}
+          onValueChange={(value) => setActiveTab(value as CredentialCategory | 'files')}
           className="space-y-6"
         >
           <TabsList className="flex flex-wrap gap-2 rounded-full border border-white/15 bg-white/5 p-2">
+            <VaultTrigger icon={File} value="files" label="Files" />
             <VaultTrigger icon={Key} value="api-key" label="API keys" />
             <VaultTrigger icon={Lock} value="password" label="Passwords" />
             <VaultTrigger icon={Database} value="database-url" label="Database URLs" />
             <VaultTrigger icon={FileCode} value="env-var" label="Env variables" />
             <VaultTrigger icon={MoreHorizontal} value="other" label="Other" />
           </TabsList>
+
+          <TabsContent value="files" className="space-y-4">
+            {files.length === 0 ? (
+              <div className="rounded-[28px] border border-dashed border-white/12 bg-white/[0.03] p-10 text-center text-white/60">
+                No files yet. Add your first file (like .env) to keep sensitive configs secure.
+              </div>
+            ) : (
+              <div className="grid gap-5 md:grid-cols-2">
+                {files.map((file) => (
+                  <FileCard
+                    key={file._id.toString()}
+                    file={file as any}
+                    onEdit={handleEditFile}
+                    onDelete={(id) => {
+                      const target = files.find((f) => f._id.toString() === id);
+                      if (target) setPendingDeleteFile(target);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
           {categories.map((category) => {
             const categoryCredentials = credentials.filter((cred) => cred.category === category);
@@ -181,6 +273,17 @@ export default function VaultPage() {
         onSubmit={editingCredential ? handleUpdate : handleCreate}
       />
 
+      <FileForm
+        file={editingFile as any}
+        projectId={projectId}
+        open={fileFormOpen}
+        onClose={() => {
+          setFileFormOpen(false);
+          setEditingFile(undefined);
+        }}
+        onSubmit={editingFile ? handleUpdateFile : handleCreateFile}
+      />
+
       <PasswordGenerator open={generatorOpen} onClose={() => setGeneratorOpen(false)} onUse={handleUsePassword} />
 
       <ConfirmDialog
@@ -191,7 +294,7 @@ export default function VaultPage() {
         title="Delete credential"
         description={
           pendingDelete
-            ? `Delete "${pendingDelete.label}" from the vault? You’ll need to re-enter it if required later.`
+            ? `Delete "${pendingDelete.label}" from the vault? You'll need to re-enter it if required later.`
             : ''
         }
         confirmLabel="Delete"
@@ -199,13 +302,30 @@ export default function VaultPage() {
         tone="danger"
         onConfirm={handleDelete}
       />
+
+      <ConfirmDialog
+        open={!!pendingDeleteFile}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteFile(null);
+        }}
+        title="Delete file"
+        description={
+          pendingDeleteFile
+            ? `Delete "${pendingDeleteFile.filename}" from the vault? You'll need to re-upload it if required later.`
+            : ''
+        }
+        confirmLabel="Delete"
+        cancelLabel="Keep file"
+        tone="danger"
+        onConfirm={handleDeleteFile}
+      />
     </div>
   );
 }
 
 interface VaultTriggerProps {
   icon: ComponentType<{ className?: string }>;
-  value: CredentialCategory;
+  value: CredentialCategory | 'files';
   label: string;
 }
 
