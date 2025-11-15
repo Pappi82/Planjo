@@ -193,6 +193,22 @@ export interface IActivityLog extends Document {
 }
 
 // ============================================================================
+// PROMPT
+// ============================================================================
+
+export interface IPrompt extends Document {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  title: string;
+  content: string;
+  category?: string;
+  tags?: string[];
+  isFavorite?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ============================================================================
 // CLIENT-SIDE TYPES (without Mongoose Document)
 // ============================================================================
 
@@ -206,6 +222,7 @@ export type Credential = Omit<ICredential, keyof Document>;
 export type DocumentType = Omit<IDocument, keyof Document>;
 export type JournalEntry = Omit<IJournalEntry, keyof Document>;
 export type ActivityLog = Omit<IActivityLog, keyof Document> & { _id?: string };
+export type Prompt = Omit<IPrompt, keyof Document>;
 
 export interface AnalyticsSnapshot {
   streak: {

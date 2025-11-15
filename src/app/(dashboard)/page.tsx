@@ -43,6 +43,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ProjectForm } from '@/components/projects/ProjectForm';
 import StreakDisplay from '@/components/analytics/StreakDisplay';
+import PromptSaver from '@/components/prompts/PromptSaver';
 import { useProjects } from '@/hooks/useProjects';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useRecentActivity } from '@/hooks/useRecentActivity';
@@ -463,14 +464,7 @@ export default function DashboardPage() {
             <OrbitMetric label="Shipping rate" value={shippingRate} accent="#f9a826" subtitle="avg completion across featured projects" />
           </div>
 
-          <FlowStateBeacon
-            flowState={flowState}
-            flowAccent={flowAccent}
-            cadencePercent={cadencePercent}
-            latestWeek={latestWeek}
-            streakCurrent={streakCurrent}
-            streakMax={streakMax}
-          />
+          <PromptSaver />
 
           <QuickCommandGrid
             actions={quickActions}
@@ -592,53 +586,6 @@ function OrbitMetric({
           <p className="text-xs uppercase tracking-[0.4em] text-white/50">{label}</p>
           <p className="text-sm text-white/70">{subtitle}</p>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function FlowStateBeacon({
-  flowState,
-  flowAccent,
-  cadencePercent,
-  latestWeek,
-  streakCurrent,
-  streakMax,
-}: {
-  flowState: string;
-  flowAccent: string;
-  cadencePercent: number;
-  latestWeek: number;
-  streakCurrent: number;
-  streakMax: number;
-}) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-6 rounded-[24px] border border-white/12 bg-white/[0.05] px-6 py-5 text-white shadow-[0_16px_32px_rgba(15,23,42,0.35)]">
-      <div className="flex items-center gap-4">
-        <span
-          className="flex h-12 w-12 items-center justify-center rounded-full border text-white"
-          style={{
-            borderColor: `${flowAccent}55`,
-            backgroundColor: `${flowAccent}15`,
-            color: flowAccent,
-          }}
-        >
-          <Flame className="h-5 w-5" />
-        </span>
-        <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-white/60">Flow status</p>
-          <p className="text-lg font-semibold">{flowState}</p>
-        </div>
-      </div>
-      <div className="flex flex-wrap gap-6 text-sm text-white/70">
-        <span>Cadence at {cadencePercent}% of your peak.</span>
-        <span>
-          Last week shipped <span className="font-semibold text-white">{latestWeek}</span> tasks.
-        </span>
-        <span>
-          Streak {streakCurrent}d
-          {streakMax ? <span className="text-white/50"> • peak {streakMax}d</span> : null}
-        </span>
       </div>
     </div>
   );
