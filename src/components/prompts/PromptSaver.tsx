@@ -51,7 +51,7 @@ export default function PromptSaver({ className = '' }: PromptSaverProps) {
   const handleCopy = async (prompt: Prompt) => {
     try {
       await navigator.clipboard.writeText(prompt.content);
-      setCopiedId(prompt._id.toString());
+      setCopiedId(String(prompt._id));
       setTimeout(() => setCopiedId(null), 2000);
     } catch (error) {
       console.error('Error copying prompt:', error);
@@ -60,7 +60,7 @@ export default function PromptSaver({ className = '' }: PromptSaverProps) {
 
   const handleToggleFavorite = async (prompt: Prompt) => {
     try {
-      await fetch(`/api/prompts/${prompt._id}`, {
+      await fetch(`/api/prompts/${String(prompt._id)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isFavorite: !prompt.isFavorite }),
@@ -159,7 +159,7 @@ export default function PromptSaver({ className = '' }: PromptSaverProps) {
         <div className="space-y-3">
           {displayPrompts.map((prompt) => (
             <div
-              key={prompt._id.toString()}
+              key={String(prompt._id)}
               className="group rounded-xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-white/20 hover:bg-white/[0.05]"
             >
               <div className="mb-2 flex items-start justify-between gap-2">
@@ -186,11 +186,11 @@ export default function PromptSaver({ className = '' }: PromptSaverProps) {
                   >
                     <Copy
                       className="h-4 w-4"
-                      color={copiedId === prompt._id.toString() ? '#38f8c7' : '#ffffff88'}
+                      color={copiedId === String(prompt._id) ? '#38f8c7' : '#ffffff88'}
                     />
                   </button>
                   <button
-                    onClick={() => handleDelete(prompt._id.toString())}
+                    onClick={() => handleDelete(String(prompt._id))}
                     className="rounded-lg p-1.5 transition hover:bg-white/10"
                     title="Delete"
                   >

@@ -6,7 +6,7 @@ import { Document, Types } from 'mongoose';
 
 export type ProjectStatus = 'planning' | 'active' | 'on-hold' | 'completed' | 'archived';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
-export type CredentialCategory = 'api-key' | 'password' | 'database-url' | 'env-var' | 'other';
+export type CredentialCategory = 'files' | 'api-key' | 'password' | 'database-url' | 'env-var' | 'other';
 export type ActivityType = 
   | 'task_created' 
   | 'task_completed' 
@@ -141,6 +141,10 @@ export interface ICredential extends Document {
   encryptedValue: string;
   url?: string;
   notes?: string;
+  // File-specific fields (when category is 'files')
+  filename?: string;
+  mimeType?: string;
+  size?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -234,13 +238,13 @@ export type Project = Omit<IProject, keyof Omit<Document, '_id'>>;
 export type KanbanColumn = Omit<IKanbanColumn, keyof Omit<Document, '_id'>>;
 export type Task = Omit<ITask, keyof Omit<Document, '_id'>>;
 export type Subtask = ISubtask;
-export type ParkingLotItem = Omit<IParkingLotItem, keyof Document>;
-export type Credential = Omit<ICredential, keyof Document>;
-export type VaultFile = Omit<IVaultFile, keyof Document>;
-export type DocumentType = Omit<IDocument, keyof Document>;
-export type JournalEntry = Omit<IJournalEntry, keyof Document>;
-export type ActivityLog = Omit<IActivityLog, keyof Document> & { _id?: string };
-export type Prompt = Omit<IPrompt, keyof Document>;
+export type ParkingLotItem = Omit<IParkingLotItem, keyof Omit<Document, '_id'>>;
+export type Credential = Omit<ICredential, keyof Omit<Document, '_id'>>;
+export type VaultFile = Omit<IVaultFile, keyof Omit<Document, '_id'>>;
+export type DocumentType = Omit<IDocument, keyof Omit<Document, '_id'>>;
+export type JournalEntry = Omit<IJournalEntry, keyof Omit<Document, '_id'>>;
+export type ActivityLog = Omit<IActivityLog, keyof Omit<Document, '_id'>> & { _id?: string };
+export type Prompt = Omit<IPrompt, keyof Omit<Document, '_id'>>;
 
 export interface AnalyticsSnapshot {
   streak: {

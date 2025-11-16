@@ -85,6 +85,7 @@ export const DEFAULT_KANBAN_COLUMNS = [
 ];
 
 export const CREDENTIAL_CATEGORIES = {
+  FILES: 'files',
   API_KEY: 'api-key',
   PASSWORD: 'password',
   DATABASE_URL: 'database-url',
@@ -93,6 +94,7 @@ export const CREDENTIAL_CATEGORIES = {
 };
 
 export const CREDENTIAL_CATEGORIES_ARRAY = [
+  { value: 'files', label: 'Files' },
   { value: 'api-key', label: 'API Key' },
   { value: 'password', label: 'Password' },
   { value: 'database-url', label: 'Database URL' },

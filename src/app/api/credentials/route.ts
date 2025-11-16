@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { projectId, category, label, value, url, notes } =
+    const { projectId, category, label, value, url, notes, filename, mimeType, size } =
       await request.json();
 
     if (!projectId || !label || !value || !category) {
@@ -69,15 +69,25 @@ export async function POST(request: NextRequest) {
     // Encrypt the value on the server-side
     const encryptedValue = encrypt(value);
 
-    const credential = await Credential.create({
+    const credentialData: any = {
       userId: session.user.id,
       projectId,
       category,
       label,
       encryptedValue,
-      url,
       notes,
-    });
+    };
+
+    // Add category-specific fields
+    if (category === 'files') {
+      credentialData.filename = filename;
+      credentialData.mimeType = mimeType;
+      credentialData.size = size;
+    } else {
+      credentialData.url = url;
+    }
+
+    const credential = await Credential.create(credentialData);
 
     return NextResponse.json({ credential }, { status: 201 });
   } catch (error) {

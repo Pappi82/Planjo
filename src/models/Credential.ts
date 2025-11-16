@@ -17,7 +17,7 @@ const CredentialSchema = new Schema<ICredential>(
     },
     category: {
       type: String,
-      enum: ['api-key', 'password', 'database-url', 'env-var', 'other'],
+      enum: ['files', 'api-key', 'password', 'database-url', 'env-var', 'other'],
       required: true,
     },
     label: {
@@ -35,6 +35,16 @@ const CredentialSchema = new Schema<ICredential>(
     notes: {
       type: String,
       default: '',
+    },
+    // File-specific fields (when category is 'files')
+    filename: {
+      type: String,
+    },
+    mimeType: {
+      type: String,
+    },
+    size: {
+      type: Number,
     },
   },
   {

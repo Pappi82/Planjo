@@ -14,6 +14,8 @@ import { FileText, Shield } from 'lucide-react';
 import { PageHero } from '@/components/layout/PageHero';
 import { SectionSurface } from '@/components/layout/SectionSurface';
 import { useProjects } from '@/hooks/useProjects';
+import { ProjectStatusBadge } from '@/components/projects/ProjectStatusBadge';
+import { ProjectStatus } from '@/lib/constants';
 
 export default function BoardPage() {
   const params = useParams();
@@ -21,7 +23,7 @@ export default function BoardPage() {
 
   const { tasks, mutate: mutateTasks } = useTasks(projectId);
   const { columns, mutate: mutateColumns } = useColumns(projectId);
-  const { projects } = useProjects();
+  const { projects, mutate: mutateProjects } = useProjects();
 
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -200,7 +202,14 @@ export default function BoardPage() {
           'Drag tickets, drop momentum, and keep work states visible.'
         }
         highlight={
-          <div className="flex flex-wrap gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            {project && (
+              <ProjectStatusBadge
+                projectId={projectId}
+                currentStatus={project.status as ProjectStatus}
+                onStatusChange={mutateProjects}
+              />
+            )}
             <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 uppercase tracking-[0.35em] text-white/60">
               {activeColumn} columns
             </span>

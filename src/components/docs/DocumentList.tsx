@@ -49,10 +49,9 @@ export default function DocumentList({
               </div>
             ) : (
               documents.map((doc) => (
-                <button
+                <div
                   key={doc._id.toString()}
-                  type="button"
-                  className={`group flex w-full items-center gap-3 rounded-[20px] border px-4 py-3 text-left transition hover:-translate-y-[1px] hover:border-white/35 hover:bg-white/[0.08] ${
+                  className={`group flex w-full items-center gap-3 rounded-[20px] border px-4 py-3 text-left transition hover:-translate-y-[1px] hover:border-white/35 hover:bg-white/[0.08] cursor-pointer ${
                     selectedId === doc._id.toString()
                       ? 'border-white/35 bg-white/[0.12]'
                       : 'border-white/12 bg-white/[0.04]'
@@ -77,7 +76,7 @@ export default function DocumentList({
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
-                </button>
+                </div>
               ))
             )}
           </div>
