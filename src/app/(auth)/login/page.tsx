@@ -162,7 +162,7 @@ export default function LoginPage() {
               <p className="text-center">
                 Need an account?{' '}
                 <Link href="/register" className="text-white hover:underline">
-                  Request access
+                  Create an account
                 </Link>
               </p>
               <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-[0.3em] text-white/40">
@@ -170,7 +170,7 @@ export default function LoginPage() {
                 <span>•</span>
                 <span>Privacy</span>
                 <span>•</span>
-                <span>Status</span>
+                <span>Progress</span>
               </div>
             </div>
           </div>
