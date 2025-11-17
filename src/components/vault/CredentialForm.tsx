@@ -86,6 +86,33 @@ export default function CredentialForm({
     }
   };
 
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (!droppedFile) return;
+
+    try {
+      const text = await droppedFile.text();
+      setFormData({
+        ...formData,
+        filename: droppedFile.name,
+        value: text,
+        mimeType: droppedFile.type || 'text/plain',
+        label: formData.label || droppedFile.name,
+      });
+    } catch (error) {
+      console.error('Error reading file:', error);
+      alert('Failed to read file. Please try again.');
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   const handleClearFile = () => {
     setFormData({
       ...formData,
@@ -278,12 +305,13 @@ export default function CredentialForm({
                   type="file"
                   onChange={handleFileSelect}
                   className="hidden"
-                  accept=".env,.txt,.json,.yaml,.yml,.xml,.config,.conf,.ini,.toml,.properties"
                 />
 
                 {!formData.filename ? (
                   <div
                     onClick={() => fileInputRef.current?.click()}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
                     className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-[20px] border-2 border-dashed border-white/20 bg-white/5 p-8 transition hover:border-white/40 hover:bg-white/10"
                   >
                     <Upload className="h-10 w-10 text-white/60" />
@@ -293,6 +321,9 @@ export default function CredentialForm({
                       </p>
                       <p className="text-xs text-white/60">
                         .env, .txt, .json, .yaml, or any text file
+                      </p>
+                      <p className="mt-2 text-xs text-[#38f8c7]/80">
+                        💡 Can't see .env files? Press Cmd+Shift+. in the file picker
                       </p>
                     </div>
                   </div>
