@@ -143,12 +143,27 @@ export default function CredentialForm({
         submitData.filename = formData.filename;
         submitData.mimeType = formData.mimeType;
         submitData.size = new Blob([formData.value]).size;
+
+        console.log('[CredentialForm] Submitting file:', {
+          filename: submitData.filename,
+          mimeType: submitData.mimeType,
+          size: submitData.size,
+          valueLength: submitData.value?.length || 0,
+        });
       } else {
         submitData.value = formData.value; // Secret value
         submitData.url = formData.url;
+
+        console.log('[CredentialForm] Submitting credential:', {
+          category: formData.category,
+          hasValue: !!submitData.value,
+          hasUrl: !!submitData.url,
+        });
       }
 
+      console.log('[CredentialForm] Calling onSubmit...');
       await onSubmit(submitData);
+      console.log('[CredentialForm] Submit successful!');
 
       // Reset form data
       setFormData({
@@ -163,7 +178,11 @@ export default function CredentialForm({
 
       onClose();
     } catch (error) {
-      console.error('Error submitting credential:', error);
+      console.error('[CredentialForm] Error submitting credential:', error);
+      console.error('[CredentialForm] Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       alert(error instanceof Error ? error.message : 'Failed to save credential. Please try again.');
     } finally {
       setLoading(false);
