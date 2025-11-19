@@ -6,7 +6,7 @@ import Task from '@/models/Task';
 import ActivityLog from '@/models/ActivityLog';
 import KanbanColumn from '@/models/KanbanColumn';
 
-// GET all tasks for a project
+// GET all tasks for a project or filtered tasks
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,64 +16,117 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get('projectId');
-
-    if (!projectId) {
-      return NextResponse.json(
-        { error: 'Project ID is required' },
-        { status: 400 }
-      );
-    }
+    const priorityParam = searchParams.get('priority');
+    const isCloudTaskParam = searchParams.get('isCloudTask');
+    const completedAfter = searchParams.get('completedAfter');
+    const completedBefore = searchParams.get('completedBefore');
+    const limitParam = searchParams.get('limit');
 
     await dbConnect();
 
-    console.log('Fetching tasks with:', { projectId, userId: session.user.id });
-
-    // First, let's see all tasks for this project regardless of userId
-    const allProjectTasks = await Task.find({ projectId });
-    console.log(`Total tasks in project: ${allProjectTasks.length}`);
-    if (allProjectTasks.length > 0) {
-      console.log('Sample task from DB:', {
-        _id: allProjectTasks[0]._id.toString(),
-        userId: allProjectTasks[0].userId?.toString(),
-        projectId: allProjectTasks[0].projectId?.toString(),
-        parentTaskId: allProjectTasks[0].parentTaskId?.toString(),
-        title: allProjectTasks[0].title,
-      });
-    }
-
-    // Query for tasks - exclude archived tasks
-    const tasks = await Task.find({
-      projectId,
+    // Build query based on parameters
+    const query: any = {
+      userId: session.user.id,
       archivedAt: null,
-      $or: [
-        { parentTaskId: null },
-        { parentTaskId: { $exists: false } }
-      ]
-    }).sort({ position: 1 });
+    };
 
-    console.log(`Query returned ${tasks.length} tasks`);
+    // If projectId is provided, use the original project-specific logic
+    if (projectId) {
+      console.log('Fetching tasks with:', { projectId, userId: session.user.id });
 
-    // Get subtasks for each task (excluding archived subtasks)
-    const tasksWithSubtasks = await Promise.all(
-      tasks.map(async (task) => {
-        const subtasks = await Task.find({
-          parentTaskId: task._id,
-          archivedAt: null,
-        }).sort({ position: 1 });
+      // First, let's see all tasks for this project regardless of userId
+      const allProjectTasks = await Task.find({ projectId });
+      console.log(`Total tasks in project: ${allProjectTasks.length}`);
+      if (allProjectTasks.length > 0) {
+        console.log('Sample task from DB:', {
+          _id: allProjectTasks[0]._id.toString(),
+          userId: allProjectTasks[0].userId?.toString(),
+          projectId: allProjectTasks[0].projectId?.toString(),
+          parentTaskId: allProjectTasks[0].parentTaskId?.toString(),
+          title: allProjectTasks[0].title,
+        });
+      }
 
-        return {
-          ...task.toObject(),
-          subtasks,
-        };
-      })
-    );
+      // Query for tasks - exclude archived tasks
+      const tasks = await Task.find({
+        projectId,
+        archivedAt: null,
+        $or: [
+          { parentTaskId: null },
+          { parentTaskId: { $exists: false } }
+        ]
+      }).sort({ position: 1 });
 
-    console.log(`Found ${tasksWithSubtasks.length} tasks for project ${projectId}`);
-    if (tasksWithSubtasks.length > 0) {
-      console.log('Sample task:', JSON.stringify(tasksWithSubtasks[0], null, 2));
+      console.log(`Query returned ${tasks.length} tasks`);
+
+      // Get subtasks for each task (excluding archived subtasks)
+      const tasksWithSubtasks = await Promise.all(
+        tasks.map(async (task) => {
+          const subtasks = await Task.find({
+            parentTaskId: task._id,
+            archivedAt: null,
+          }).sort({ position: 1 });
+
+          return {
+            ...task.toObject(),
+            subtasks,
+          };
+        })
+      );
+
+      console.log(`Found ${tasksWithSubtasks.length} tasks for project ${projectId}`);
+      if (tasksWithSubtasks.length > 0) {
+        console.log('Sample task:', JSON.stringify(tasksWithSubtasks[0], null, 2));
+      }
+
+      return NextResponse.json({ tasks: tasksWithSubtasks });
     }
 
-    return NextResponse.json({ tasks: tasksWithSubtasks });
+    // Otherwise, use filtered query
+    query.$or = [
+      { parentTaskId: null },
+      { parentTaskId: { $exists: false } }
+    ];
+
+    // Filter by priority
+    if (priorityParam) {
+      const priorities = priorityParam.split(',').map(p => p.trim());
+      query.priority = { $in: priorities };
+    }
+
+    // Filter by cloud task
+    if (isCloudTaskParam === 'true') {
+      query.isCloudTask = true;
+    }
+
+    // Filter by completion date range
+    if (completedAfter || completedBefore) {
+      query.completedAt = {};
+      if (completedAfter) {
+        query.completedAt.$gte = new Date(completedAfter);
+      }
+      if (completedBefore) {
+        query.completedAt.$lt = new Date(completedBefore);
+      }
+    }
+
+    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
+
+    let tasksQuery = Task.find(query).sort({ createdAt: -1 });
+
+    if (limit) {
+      tasksQuery = tasksQuery.limit(limit);
+    }
+
+    const tasks = await tasksQuery.populate('projectId', 'title colorTheme');
+
+    // Transform to include project data
+    const tasksWithProjects = tasks.map(task => ({
+      ...task.toObject(),
+      project: task.projectId,
+    }));
+
+    return NextResponse.json({ tasks: tasksWithProjects });
   } catch (error) {
     console.error('Get tasks error:', error);
     return NextResponse.json(

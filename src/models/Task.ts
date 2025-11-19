@@ -104,6 +104,10 @@ const TaskSchema = new Schema<ITask>(
       type: String,
       default: '',
     },
+    isCloudTask: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

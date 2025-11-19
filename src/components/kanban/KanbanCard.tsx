@@ -4,11 +4,12 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Badge } from '@/components/ui/badge';
 import { ITask } from '@/types';
-import { Calendar, Clock, CheckCircle2, Focus } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, Cloud } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
 import { TASK_PRIORITIES } from '@/lib/constants';
+import { useState } from 'react';
 
 interface KanbanCardProps {
   task: ITask;
@@ -19,6 +20,9 @@ interface KanbanCardProps {
 
 export default function KanbanCard({ task, onClick, isDragging, accentColor }: KanbanCardProps) {
   const router = useRouter();
+  const [isCloudTask, setIsCloudTask] = useState(task.isCloudTask || false);
+  const [isTogglingCloud, setIsTogglingCloud] = useState(false);
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging: isSortableDragging } = useSortable({
     id: task._id.toString(),
   });
@@ -37,9 +41,26 @@ export default function KanbanCard({ task, onClick, isDragging, accentColor }: K
   const completedSubtasks =
     (task as any).subtasks?.filter((s: ITask) => s.completedAt).length || 0;
 
-  const handleVibeMode = (e: React.MouseEvent) => {
+  const handleCloudToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    router.push(`/vibe/${task._id.toString()}`);
+    if (isTogglingCloud) return;
+
+    setIsTogglingCloud(true);
+    try {
+      const response = await fetch(`/api/tasks/${task._id.toString()}/cloud`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isCloudTask: !isCloudTask }),
+      });
+
+      if (response.ok) {
+        setIsCloudTask(!isCloudTask);
+      }
+    } catch (error) {
+      console.error('Failed to toggle cloud status:', error);
+    } finally {
+      setIsTogglingCloud(false);
+    }
   };
 
   const baseAccent = accentColor || '#6f9eff';
@@ -73,11 +94,16 @@ export default function KanbanCard({ task, onClick, isDragging, accentColor }: K
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 rounded-full border border-white/15 bg-white/10 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-              onClick={handleVibeMode}
-              title="Enter Vibe Mode"
+              className={`h-7 w-7 rounded-full border transition-all duration-200 ${
+                isCloudTask
+                  ? 'border-[#4ecbff]/50 bg-[#4ecbff]/20 opacity-100'
+                  : 'border-white/15 bg-white/10 opacity-0 group-hover:opacity-100'
+              }`}
+              onClick={handleCloudToggle}
+              title={isCloudTask ? "Remove from Quick Wins" : "Mark as Quick Win"}
+              disabled={isTogglingCloud}
             >
-              <Focus className="h-3.5 w-3.5 text-[#38f8c7]" />
+              <Cloud className={`h-3.5 w-3.5 transition-colors ${isCloudTask ? 'text-[#4ecbff]' : 'text-white/70'}`} />
             </Button>
             <div
               className="h-8 w-1.5 rounded-full"

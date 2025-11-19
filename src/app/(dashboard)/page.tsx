@@ -44,6 +44,9 @@ import { Progress } from '@/components/ui/progress';
 import { ProjectForm } from '@/components/projects/ProjectForm';
 import StreakDisplay from '@/components/analytics/StreakDisplay';
 import PromptSaver from '@/components/prompts/PromptSaver';
+import HighPriorityTasks from '@/components/dashboard/HighPriorityTasks';
+import CloudTasks from '@/components/dashboard/CloudTasks';
+import DailyMomentum from '@/components/dashboard/DailyMomentum';
 import { useProjects } from '@/hooks/useProjects';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useRecentActivity } from '@/hooks/useRecentActivity';
@@ -459,9 +462,9 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
-            <OrbitMetric label="Cadence" value={cadencePercent} accent="#38f8c7" subtitle="vs your best week" />
-            <OrbitMetric label="Focus retention" value={focusRetention} accent="#8c6ff7" subtitle="active days this month" />
-            <OrbitMetric label="Shipping rate" value={shippingRate} accent="#f9a826" subtitle="avg completion across featured projects" />
+            <HighPriorityTasks userId={session?.user?.id} />
+            <CloudTasks userId={session?.user?.id} />
+            <DailyMomentum userId={session?.user?.id} />
           </div>
 
           <PromptSaver />
