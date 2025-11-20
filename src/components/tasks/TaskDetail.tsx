@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ITask } from '@/types';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ITask, IKanbanColumn } from '@/types';
 import { TASK_PRIORITIES } from '@/lib/constants';
 import SubtaskList from './SubtaskList';
 import { Trash2, Focus } from 'lucide-react';
@@ -21,6 +22,7 @@ interface TaskDetailProps {
   onUpdate: (taskId: string, data: any) => Promise<void>;
   onDelete: (taskId: string) => Promise<void>;
   onAddSubtask: (parentId: string, title: string) => Promise<void>;
+  columns: IKanbanColumn[];
 }
 
 export default function TaskDetail({
@@ -30,6 +32,7 @@ export default function TaskDetail({
   onUpdate,
   onDelete,
   onAddSubtask,
+  columns,
 }: TaskDetailProps) {
   const router = useRouter();
   const [formData, setFormData] = useState<any>({});
@@ -110,6 +113,36 @@ export default function TaskDetail({
     router.push(`/vibe/${task._id.toString()}`);
   };
 
+  const handleToggleComplete = async () => {
+    setLoading(true);
+    try {
+      // Sort columns by order to find the last column
+      const sortedColumns = [...columns].sort((a, b) => a.order - b.order);
+      const lastColumn = sortedColumns[sortedColumns.length - 1];
+      const inProgressColumn = sortedColumns.find(col => col.name === 'In Progress') || sortedColumns[1];
+
+      const isCurrentlyComplete = !!task.completedAt;
+
+      if (isCurrentlyComplete) {
+        // Unmarking as complete - clear completedAt and move to In Progress
+        await onUpdate(task._id.toString(), {
+          completedAt: null,
+          status: inProgressColumn?.name || task.status,
+        });
+      } else {
+        // Marking as complete - set completedAt and move to last column
+        await onUpdate(task._id.toString(), {
+          completedAt: new Date().toISOString(),
+          status: lastColumn?.name || task.status,
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling task completion:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!task) {
     return null;
   }
@@ -119,6 +152,29 @@ export default function TaskDetail({
       <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-[28px] border-white/12 bg-slate-950/85">
         <DialogHeader>
           <DialogTitle>Task Details</DialogTitle>
+
+          {/* Completion Status */}
+          <div className="flex items-center gap-3 pt-3 pb-2">
+            <Checkbox
+              id="task-complete"
+              checked={!!task.completedAt}
+              onCheckedChange={handleToggleComplete}
+              disabled={loading}
+            />
+            <Label
+              htmlFor="task-complete"
+              className={`text-sm font-medium cursor-pointer select-none transition-colors ${
+                task.completedAt ? 'text-green-400' : 'text-white/70'
+              }`}
+            >
+              {task.completedAt ? 'Completed' : 'Mark as complete'}
+            </Label>
+            {task.completedAt && (
+              <span className="text-xs text-white/40">
+                {new Date(task.completedAt).toLocaleDateString()}
+              </span>
+            )}
+          </div>
 
           {/* Enter Vibe Mode Button - Centered */}
           <div className="flex justify-center pt-2 pb-4">

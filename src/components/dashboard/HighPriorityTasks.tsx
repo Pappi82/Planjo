@@ -75,10 +75,11 @@ export default function HighPriorityTasks({ userId }: HighPriorityTasksProps) {
           <div className="mt-4 space-y-2">
             {tasks.slice(0, 3).map(task => {
               const priorityInfo = TASK_PRIORITIES.find(p => p.value === task.priority);
+              const projectId = task.project?._id?.toString() || task.projectId?.toString();
               return (
                 <button
                   key={task._id.toString()}
-                  onClick={() => router.push(`/projects/${task.projectId}/board`)}
+                  onClick={() => projectId && router.push(`/projects/${projectId}/board`)}
                   className="group/task w-full rounded-xl border border-white/10 bg-white/[0.03] p-3 text-left transition hover:border-white/30 hover:bg-white/[0.08]"
                 >
                   <div className="flex items-center justify-between gap-3">

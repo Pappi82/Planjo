@@ -263,6 +263,7 @@ export default function BoardPage() {
         onUpdate={handleUpdateTask}
         onDelete={handleDeleteTask}
         onAddSubtask={handleAddSubtask}
+        columns={columns}
       />
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>

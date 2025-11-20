@@ -71,26 +71,29 @@ export default function CloudTasks({ userId }: CloudTasksProps) {
         ) : (
           <>
             <div className="mt-4 space-y-2">
-              {tasks.slice(0, 4).map(task => (
-                <button
-                  key={task._id.toString()}
-                  onClick={() => router.push(`/projects/${task.projectId}/board`)}
-                  className="group/task w-full rounded-xl border border-white/10 bg-white/[0.03] p-3 text-left transition hover:border-[#4ecbff]/30 hover:bg-[#4ecbff]/5"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <Cloud className="h-3.5 w-3.5 flex-shrink-0 text-[#4ecbff]" />
-                        <p className="truncate text-sm font-medium text-white">{task.title}</p>
+              {tasks.slice(0, 4).map(task => {
+                const projectId = task.project?._id?.toString() || task.projectId?.toString();
+                return (
+                  <button
+                    key={task._id.toString()}
+                    onClick={() => projectId && router.push(`/projects/${projectId}/board`)}
+                    className="group/task w-full rounded-xl border border-white/10 bg-white/[0.03] p-3 text-left transition hover:border-[#4ecbff]/30 hover:bg-[#4ecbff]/5"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <Cloud className="h-3.5 w-3.5 flex-shrink-0 text-[#4ecbff]" />
+                          <p className="truncate text-sm font-medium text-white">{task.title}</p>
+                        </div>
+                        {task.project && (
+                          <p className="mt-1 text-xs text-white/50">{task.project.title}</p>
+                        )}
                       </div>
-                      {task.project && (
-                        <p className="mt-1 text-xs text-white/50">{task.project.title}</p>
-                      )}
+                      <ChevronRight className="h-4 w-4 text-white/40 transition group-hover/task:text-white/70" />
                     </div>
-                    <ChevronRight className="h-4 w-4 text-white/40 transition group-hover/task:text-white/70" />
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
               {tasks.length > 4 && (
                 <button
                   onClick={() => router.push('/projects')}

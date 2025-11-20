@@ -151,7 +151,7 @@ export default function KanbanColumn({
 
         <div
           ref={setNodeRef}
-          className="relative mt-4 flex flex-1 flex-col gap-3 overflow-y-auto pr-1 min-h-0"
+          className="relative mt-6 flex flex-1 flex-col gap-4 overflow-y-auto px-1 pt-1 pb-2 min-h-0"
         >
           <SortableContext
             items={tasks.map((t) => t._id.toString())}

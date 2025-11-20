@@ -72,13 +72,13 @@ export default function KanbanCard({ task, onClick, isDragging, accentColor }: K
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className={`group relative flex-shrink-0 overflow-hidden rounded-[22px] border border-white/12 bg-white/[0.06] p-4 text-white shadow-[0_18px_36px_rgba(5,8,26,0.45)] transition-all duration-200 ${
-        isBeingDragged ? 'scale-[1.02] ring-2 ring-white/20' : 'cursor-grab active:cursor-grabbing hover:-translate-y-1 hover:border-white/35 hover:bg-white/[0.1]'
+      className={`group relative flex-shrink-0 overflow-hidden rounded-[22px] border border-white/12 bg-white/[0.06] p-4 text-white shadow-[0_18px_36px_rgba(5,8,26,0.45)] transition-all duration-300 ${
+        isBeingDragged ? 'scale-[1.02] ring-2 ring-white/20' : 'cursor-grab active:cursor-grabbing hover:scale-[1.02] hover:border-white/40 hover:bg-white/[0.1] hover:shadow-[0_20px_50px_rgba(5,8,26,0.6),0_0_30px_rgba(111,158,255,0.15)]'
       }`}
     >
-      <div className="pointer-events-none absolute inset-0 opacity-40">
+      <div className="pointer-events-none absolute inset-0 opacity-40 transition-opacity duration-300 group-hover:opacity-70">
         <div
-          className="absolute -top-14 right-6 h-28 w-28 rounded-full blur-[90px]"
+          className="absolute -top-14 right-6 h-28 w-28 rounded-full blur-[90px] transition-all duration-300 group-hover:blur-[100px]"
           style={{ backgroundColor: `${baseAccent}33` }}
         />
       </div>
@@ -94,16 +94,16 @@ export default function KanbanCard({ task, onClick, isDragging, accentColor }: K
             <Button
               variant="ghost"
               size="icon"
-              className={`h-7 w-7 rounded-full border transition-all duration-200 ${
+              className={`h-7 w-7 rounded-full border transition-all duration-300 hover:translate-y-0 ${
                 isCloudTask
-                  ? 'border-[#4ecbff]/50 bg-[#4ecbff]/20 opacity-100'
-                  : 'border-white/15 bg-white/10 opacity-0 group-hover:opacity-100'
+                  ? 'border-[#4ecbff]/50 bg-[#4ecbff]/20 opacity-100 hover:bg-[#4ecbff]/30 hover:border-[#4ecbff]/70 hover:shadow-[0_0_20px_rgba(78,203,255,0.5)]'
+                  : 'border-white/15 bg-white/10 opacity-0 group-hover:opacity-100 hover:bg-white/20 hover:border-white/30 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]'
               }`}
               onClick={handleCloudToggle}
               title={isCloudTask ? "Remove from Quick Wins" : "Mark as Quick Win"}
               disabled={isTogglingCloud}
             >
-              <Cloud className={`h-3.5 w-3.5 transition-colors ${isCloudTask ? 'text-[#4ecbff]' : 'text-white/70'}`} />
+              <Cloud className={`h-3.5 w-3.5 transition-all duration-300 ${isCloudTask ? 'text-[#4ecbff] hover:drop-shadow-[0_0_6px_rgba(78,203,255,0.9)]' : 'text-white/70 hover:text-white hover:drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]'}`} />
             </Button>
             <div
               className="h-8 w-1.5 rounded-full"
