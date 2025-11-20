@@ -83,6 +83,8 @@ export default function KanbanColumn({
   return (
     <div className="flex h-full w-80 flex-shrink-0 flex-col">
       <div
+        ref={setNodeRef}
+        data-column-id={column._id.toString()}
         className={`relative flex h-full flex-col overflow-hidden rounded-[26px] border p-5 transition-all duration-200 ${
           isOver
             ? 'border-white/40 bg-white/12 shadow-[0_20px_40px_rgba(5,8,26,0.55)]'
@@ -150,7 +152,7 @@ export default function KanbanColumn({
         </div>
 
         <div
-          ref={setNodeRef}
+          data-scrollable="true"
           className="relative mt-6 flex flex-1 flex-col gap-4 overflow-y-auto px-1 pt-1 pb-2 min-h-0"
         >
           <SortableContext

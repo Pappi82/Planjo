@@ -13,14 +13,31 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get('limit') || '6', 10), 25);
+    const dateParam = searchParams.get('date');
 
     await dbConnect();
 
-    const activities = await ActivityLog.find({
+    // Build query
+    const query: any = {
       userId: session.user.id,
-    })
+    };
+
+    // If date is provided, filter for activities on that day
+    if (dateParam) {
+      const startDate = new Date(dateParam);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 1);
+
+      query.createdAt = {
+        $gte: startDate,
+        $lt: endDate,
+      };
+    }
+
+    const activities = await ActivityLog.find(query)
       .sort({ createdAt: -1 })
-      .limit(limit)
+      .limit(dateParam ? 1000 : limit) // No limit when filtering by date
       .lean();
 
     return NextResponse.json({ activities }, { status: 200 });

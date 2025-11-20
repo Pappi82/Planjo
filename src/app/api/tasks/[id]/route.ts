@@ -71,6 +71,10 @@ export async function PUT(
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
+    // Get all columns for momentum calculation
+    const allColumns = await KanbanColumn.find({ projectId: oldTask.projectId }).sort({ order: 1 });
+    const lastColumn = allColumns[allColumns.length - 1];
+
     // If status changed, update columnId as well
     if (newStatus && newStatus !== oldTask.status) {
       const newColumn = await KanbanColumn.findOne({
@@ -87,21 +91,41 @@ export async function PUT(
 
       body.columnId = newColumn._id;
 
-      // Log activity
+      // Calculate momentum points for column movement
+      const oldColumn = allColumns.find(col => col._id.toString() === oldTask.columnId?.toString());
+      const oldOrder = oldColumn?.order ?? 0;
+      const newOrder = newColumn.order;
+      const orderDifference = newOrder - oldOrder;
+      const isMovingForward = newOrder > oldOrder;
+      const isMovingBackward = newOrder < oldOrder;
+      const isMovingToLastColumn = lastColumn && newColumn._id.toString() === lastColumn._id.toString();
+
+      // Calculate momentum points (positive for forward, negative for backward)
+      let momentumPoints = 0;
+      if (orderDifference !== 0) {
+        momentumPoints = orderDifference * 0.25;
+      }
+
+      // Log activity with momentum points
       await ActivityLog.create({
         userId: session.user.id,
         type: 'task_moved',
-        description: `Moved task "${oldTask.title}" from ${oldTask.status} to ${newStatus}`,
+        description: `Moved task "${oldTask.title}" ${isMovingForward ? 'forward' : isMovingBackward ? 'backward' : ''} from ${oldTask.status} to ${newStatus}`,
         projectId: oldTask.projectId,
         metadata: {
           taskId: oldTask._id.toString(),
           from: oldTask.status,
           to: newStatus,
+          fromOrder: oldOrder,
+          toOrder: newOrder,
+          momentumPoints: momentumPoints,
+          isForwardProgress: isMovingForward,
+          isBackwardMovement: isMovingBackward,
         },
       });
     }
 
-    // If task completed, log activity
+    // If task completed, log activity with momentum points
     if (completedAt && !oldTask.completedAt) {
       await ActivityLog.create({
         userId: session.user.id,
@@ -110,7 +134,24 @@ export async function PUT(
         projectId: oldTask.projectId,
         metadata: {
           taskId: oldTask._id.toString(),
-          taskTitle: oldTask.title
+          taskTitle: oldTask.title,
+          momentumPoints: 1, // Completion always gives 1 full point
+        },
+      });
+    }
+
+    // If task unmarked as complete, log activity with negative momentum points
+    if (!completedAt && completedAt !== undefined && oldTask.completedAt) {
+      await ActivityLog.create({
+        userId: session.user.id,
+        type: 'task_moved',
+        description: `Unmarked task as complete: ${oldTask.title}`,
+        projectId: oldTask.projectId,
+        metadata: {
+          taskId: oldTask._id.toString(),
+          taskTitle: oldTask.title,
+          momentumPoints: -1, // Deduct 1 point for unmarking completion
+          isUncomplete: true,
         },
       });
     }

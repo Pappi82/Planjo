@@ -6,6 +6,7 @@ import {
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
+  DragMoveEvent,
   PointerSensor,
   useSensor,
   useSensors,
@@ -58,6 +59,43 @@ export default function KanbanBoard({
   const handleDragStart = (event: DragStartEvent) => {
     const task = tasks.find((t) => t._id.toString() === event.active.id);
     setActiveTask(task || null);
+  };
+
+  const handleDragMove = (event: DragMoveEvent) => {
+    const { over, activatorEvent } = event;
+
+    if (!over || !activatorEvent) return;
+
+    // Check if activatorEvent is a mouse or pointer event
+    if (!('clientY' in activatorEvent)) return;
+
+    // Find the column element that's being hovered over
+    const columnElement = document.querySelector(`[data-column-id="${over.id}"]`);
+    if (!columnElement) return;
+
+    // Find the scrollable container within the column
+    const scrollContainer = columnElement.querySelector('[data-scrollable="true"]');
+    if (!scrollContainer) return;
+
+    // Get the bounding rectangles
+    const rect = scrollContainer.getBoundingClientRect();
+    const scrollThreshold = 100; // pixels from edge to trigger scroll
+    const scrollSpeed = 10; // pixels per frame
+
+    // Get mouse position relative to the scroll container
+    const mouseY = (activatorEvent as MouseEvent | PointerEvent).clientY;
+
+    // Auto-scroll when near the top or bottom
+    if (mouseY < rect.top + scrollThreshold) {
+      // Near top - scroll up
+      scrollContainer.scrollTop = Math.max(0, scrollContainer.scrollTop - scrollSpeed);
+    } else if (mouseY > rect.bottom - scrollThreshold) {
+      // Near bottom - scroll down
+      scrollContainer.scrollTop = Math.min(
+        scrollContainer.scrollHeight - scrollContainer.clientHeight,
+        scrollContainer.scrollTop + scrollSpeed
+      );
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -119,7 +157,12 @@ export default function KanbanBoard({
   };
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragMove={handleDragMove}
+      onDragEnd={handleDragEnd}
+    >
       <div className="flex gap-6 overflow-x-auto pb-6 h-full">
         {columns.map((column) => (
           <KanbanColumn

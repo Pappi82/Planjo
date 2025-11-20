@@ -43,9 +43,15 @@ export async function POST(request: NextRequest) {
     const allColumns = await KanbanColumn.find({ projectId: task.projectId }).sort({ order: 1 });
     const lastColumn = allColumns[allColumns.length - 1];
 
+    // Find old and new column orders for momentum calculation
+    const oldColumn = allColumns.find(col => col._id.toString() === task.columnId?.toString());
+    const oldOrder = oldColumn?.order ?? 0;
+    const newOrder = newColumn.order;
+
     const oldStatus = task.status;
     const isMovingToLastColumn = lastColumn && newColumn._id.toString() === lastColumn._id.toString();
     const isMovingFromLastColumn = lastColumn && task.columnId?.toString() === lastColumn._id.toString();
+    const isMovingForward = newOrder > oldOrder;
 
     // Update task status, columnId, and position
     task.status = newStatus;
@@ -65,12 +71,77 @@ export async function POST(request: NextRequest) {
         projectId: task.projectId,
         metadata: {
           taskId: task._id.toString(),
-          taskTitle: task.title
+          taskTitle: task.title,
+          momentumPoints: 1, // Completion gives 1 point
         },
       });
     } else if (isMovingFromLastColumn && !isMovingToLastColumn && task.completedAt) {
-      // Moving away from last column - mark as incomplete
+      // Moving away from last column - mark as incomplete and deduct momentum
       task.completedAt = undefined;
+
+      // Log activity with negative momentum points for unmarking completion
+      await ActivityLog.create({
+        userId: session.user.id,
+        type: 'task_moved',
+        description: `Moved task "${task.title}" away from Done (unmarked as complete)`,
+        projectId: task.projectId,
+        metadata: {
+          taskId: task._id.toString(),
+          taskTitle: task.title,
+          from: oldStatus,
+          to: newStatus,
+          momentumPoints: -1, // Deduct 1 point for unmarking completion
+          isUncomplete: true,
+        },
+      });
+    }
+
+    // Award/deduct momentum points based on column movement
+    if (oldStatus !== newStatus) {
+      const orderDifference = newOrder - oldOrder;
+
+      if (isMovingForward) {
+        // Award momentum points for forward progress (moving to higher-order columns)
+        // Each column forward = 0.25 points (so moving through all 4 columns = 1 point total)
+        const momentumPoints = orderDifference * 0.25;
+
+        await ActivityLog.create({
+          userId: session.user.id,
+          type: 'task_moved',
+          description: `Moved task "${task.title}" forward from ${oldStatus} to ${newStatus}`,
+          projectId: task.projectId,
+          metadata: {
+            taskId: task._id.toString(),
+            taskTitle: task.title,
+            from: oldStatus,
+            to: newStatus,
+            fromOrder: oldOrder,
+            toOrder: newOrder,
+            momentumPoints: momentumPoints,
+            isForwardProgress: true,
+          },
+        });
+      } else if (newOrder < oldOrder) {
+        // Deduct momentum points for backward movement (moving to lower-order columns)
+        const momentumPoints = orderDifference * 0.25; // This will be negative
+
+        await ActivityLog.create({
+          userId: session.user.id,
+          type: 'task_moved',
+          description: `Moved task "${task.title}" backward from ${oldStatus} to ${newStatus}`,
+          projectId: task.projectId,
+          metadata: {
+            taskId: task._id.toString(),
+            taskTitle: task.title,
+            from: oldStatus,
+            to: newStatus,
+            fromOrder: oldOrder,
+            toOrder: newOrder,
+            momentumPoints: momentumPoints,
+            isBackwardMovement: true,
+          },
+        });
+      }
     }
 
     await task.save();

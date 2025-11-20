@@ -8,46 +8,60 @@ interface DailyMomentumProps {
 }
 
 export default function DailyMomentum({ userId }: DailyMomentumProps) {
+  const [momentumPoints, setMomentumPoints] = useState(0);
   const [tasksCompletedToday, setTasksCompletedToday] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchTodaysCompletions() {
+    async function fetchTodaysMomentum() {
       try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
 
-        const response = await fetch(
-          `/api/tasks?completedAfter=${today.toISOString()}&completedBefore=${tomorrow.toISOString()}`
-        );
+        // Fetch activity logs for today to calculate momentum points
+        const response = await fetch(`/api/activity?date=${today.toISOString()}`);
 
         if (response.ok) {
           const data = await response.json();
-          setTasksCompletedToday(data.tasks?.length || 0);
+          const activities = data.activities || [];
+
+          // Calculate total momentum points from activities
+          let totalPoints = 0;
+          let completedCount = 0;
+
+          activities.forEach((activity: any) => {
+            const points = activity.metadata?.momentumPoints || 0;
+            totalPoints += points;
+
+            if (activity.type === 'task_completed') {
+              completedCount++;
+            }
+          });
+
+          setMomentumPoints(totalPoints);
+          setTasksCompletedToday(completedCount);
         }
       } catch (error) {
-        console.error('Failed to fetch today\'s completions:', error);
+        console.error('Failed to fetch today\'s momentum:', error);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchTodaysCompletions();
+    fetchTodaysMomentum();
   }, [userId]);
 
-  // Energy levels based on tasks completed
-  const getEnergyLevel = (count: number) => {
-    if (count === 0) return { level: 'Idle', color: '#ffffff', opacity: 0.3, bars: 0 };
-    if (count === 1) return { level: 'Warming up', color: '#6f9eff', opacity: 0.5, bars: 1 };
-    if (count === 2) return { level: 'Building', color: '#8c6ff7', opacity: 0.7, bars: 2 };
-    if (count === 3) return { level: 'Flowing', color: '#f9a826', opacity: 0.85, bars: 3 };
-    if (count >= 4) return { level: 'On Fire', color: '#38f8c7', opacity: 1, bars: 4 };
+  // Energy levels based on momentum points (not just completed tasks)
+  const getEnergyLevel = (points: number) => {
+    if (points === 0) return { level: 'Idle', color: '#ffffff', opacity: 0.3, bars: 0 };
+    if (points < 1) return { level: 'Warming up', color: '#6f9eff', opacity: 0.5, bars: 1 };
+    if (points < 2) return { level: 'Building', color: '#8c6ff7', opacity: 0.7, bars: 2 };
+    if (points < 3) return { level: 'Flowing', color: '#f9a826', opacity: 0.85, bars: 3 };
+    if (points >= 3) return { level: 'On Fire', color: '#38f8c7', opacity: 1, bars: 4 };
     return { level: 'Idle', color: '#ffffff', opacity: 0.3, bars: 0 };
   };
 
-  const energy = getEnergyLevel(tasksCompletedToday);
+  const energy = getEnergyLevel(momentumPoints);
   const maxBars = 4;
 
   return (
@@ -67,7 +81,7 @@ export default function DailyMomentum({ userId }: DailyMomentumProps) {
                 backgroundColor: `${energy.color}${Math.round(energy.opacity * 15).toString(16).padStart(2, '0')}`
               }}
             >
-              {tasksCompletedToday >= 4 ? (
+              {momentumPoints >= 3 ? (
                 <Flame className="h-6 w-6 transition-colors duration-500" style={{ color: energy.color }} />
               ) : (
                 <Zap className="h-6 w-6 transition-colors duration-500" style={{ color: energy.color }} />
@@ -79,8 +93,8 @@ export default function DailyMomentum({ userId }: DailyMomentumProps) {
             </div>
           </div>
           <div className="flex items-baseline gap-1">
-            <span className="text-3xl font-bold">{tasksCompletedToday}</span>
-            <span className="text-sm text-white/60">today</span>
+            <span className="text-3xl font-bold">{momentumPoints.toFixed(1)}</span>
+            <span className="text-sm text-white/60">points</span>
           </div>
         </div>
 
@@ -142,6 +156,10 @@ export default function DailyMomentum({ userId }: DailyMomentumProps) {
 
             <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.02] px-4 py-3">
               <div className="flex items-center justify-between text-xs">
+                <span className="text-white/60">Momentum points</span>
+                <span className="font-semibold text-white">{momentumPoints.toFixed(2)}</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between text-xs">
                 <span className="text-white/60">Tasks completed</span>
                 <span className="font-semibold text-white">{tasksCompletedToday}</span>
               </div>
@@ -153,12 +171,12 @@ export default function DailyMomentum({ userId }: DailyMomentumProps) {
               </div>
             </div>
 
-            {tasksCompletedToday === 0 && (
+            {momentumPoints === 0 && (
               <p className="mt-3 text-center text-xs text-white/50">
-                Complete your first task today to start building momentum
+                Complete tasks or move them forward to build momentum
               </p>
             )}
-            {tasksCompletedToday >= 4 && (
+            {momentumPoints >= 3 && (
               <div className="mt-3 flex items-center gap-2 rounded-lg border border-[#38f8c7]/30 bg-[#38f8c7]/10 px-3 py-2">
                 <Flame className="h-4 w-4 text-[#38f8c7]" />
                 <p className="text-xs text-white/90">
