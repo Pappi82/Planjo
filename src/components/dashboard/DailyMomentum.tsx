@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Zap, TrendingUp, Flame } from 'lucide-react';
 
 interface DailyMomentumProps {
@@ -12,44 +12,53 @@ export default function DailyMomentum({ userId }: DailyMomentumProps) {
   const [tasksCompletedToday, setTasksCompletedToday] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchTodaysMomentum() {
-      try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+  const fetchTodaysMomentum = useCallback(async () => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-        // Fetch activity logs for today to calculate momentum points
-        const response = await fetch(`/api/activity?date=${today.toISOString()}`);
+      // Fetch activity logs for today to calculate momentum points
+      const response = await fetch(`/api/activity?date=${today.toISOString()}`);
 
-        if (response.ok) {
-          const data = await response.json();
-          const activities = data.activities || [];
+      if (response.ok) {
+        const data = await response.json();
+        const activities = data.activities || [];
 
-          // Calculate total momentum points from activities
-          let totalPoints = 0;
-          let completedCount = 0;
+        // Calculate total momentum points from activities
+        let totalPoints = 0;
+        let completedCount = 0;
 
-          activities.forEach((activity: any) => {
-            const points = activity.metadata?.momentumPoints || 0;
-            totalPoints += points;
+        activities.forEach((activity: any) => {
+          const points = activity.metadata?.momentumPoints || 0;
+          totalPoints += points;
 
-            if (activity.type === 'task_completed') {
-              completedCount++;
-            }
-          });
+          if (activity.type === 'task_completed') {
+            completedCount++;
+          }
+        });
 
-          setMomentumPoints(totalPoints);
-          setTasksCompletedToday(completedCount);
-        }
-      } catch (error) {
-        console.error('Failed to fetch today\'s momentum:', error);
-      } finally {
-        setLoading(false);
+        // Ensure energy cannot go below zero
+        totalPoints = Math.max(0, totalPoints);
+
+        setMomentumPoints(totalPoints);
+        setTasksCompletedToday(completedCount);
       }
+    } catch (error) {
+      console.error('Failed to fetch today\'s momentum:', error);
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
+  useEffect(() => {
+    // Initial fetch
     fetchTodaysMomentum();
-  }, [userId]);
+
+    // Poll every 5 seconds to detect task movements
+    const intervalId = setInterval(fetchTodaysMomentum, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [fetchTodaysMomentum]);
 
   // Energy levels based on momentum points (not just completed tasks)
   const getEnergyLevel = (points: number) => {
