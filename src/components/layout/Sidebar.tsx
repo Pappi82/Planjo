@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   Wrench,
+  Blocks,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ const navigation = [
   { name: 'Journal', href: '/journal', icon: BookOpen, hint: 'Daily log' },
   { name: 'Analytics', href: '/analytics', icon: BarChart3, hint: 'Momentum' },
   { name: 'Tools', href: '/tools', icon: Wrench, hint: 'Vibe stack' },
+  { name: 'MCPs', href: '/mcps', icon: Blocks, hint: 'AI servers' },
 ];
 
 const bottomNavigation = [{ name: 'Settings', href: '/settings', icon: Settings }];
