@@ -9,13 +9,15 @@ import TaskDetail from '@/components/tasks/TaskDetail';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { ITask } from '@/types';
 import { FileText, Shield } from 'lucide-react';
 import { PageHero } from '@/components/layout/PageHero';
 import { SectionSurface } from '@/components/layout/SectionSurface';
 import { useProjects } from '@/hooks/useProjects';
 import { ProjectStatusBadge } from '@/components/projects/ProjectStatusBadge';
-import { ProjectStatus } from '@/lib/constants';
+import { ProjectStatus, TASK_PRIORITIES } from '@/lib/constants';
 
 export default function BoardPage() {
   const params = useParams();
@@ -29,6 +31,7 @@ export default function BoardPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createColumnName, setCreateColumnName] = useState('');
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskPriority, setNewTaskPriority] = useState('medium');
 
   // Find the selected task from the tasks array
   const selectedTask = selectedTaskId
@@ -97,10 +100,12 @@ export default function BoardPage() {
         projectId,
         title: newTaskTitle,
         status: createColumnName,
+        priority: newTaskPriority,
       }),
     });
 
     setNewTaskTitle('');
+    setNewTaskPriority('medium');
     setCreateDialogOpen(false);
     mutateTasks();
   };
@@ -283,6 +288,26 @@ export default function BoardPage() {
               }}
               autoFocus
             />
+            <div className="space-y-2">
+              <Label htmlFor="priority" className="text-sm font-medium">
+                Priority
+              </Label>
+              <Select
+                value={newTaskPriority}
+                onValueChange={(value) => setNewTaskPriority(value)}
+              >
+                <SelectTrigger id="priority">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TASK_PRIORITIES.map((priority) => (
+                    <SelectItem key={priority.value} value={priority.value}>
+                      {priority.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
                 Cancel
