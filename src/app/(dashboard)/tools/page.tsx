@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ExternalLink, Check, X } from 'lucide-react';
+import { ExternalLink, Check, X, CheckCircle2, Circle } from 'lucide-react';
 
 interface Tool {
   id: string;
@@ -13,6 +13,71 @@ interface Tool {
 }
 
 const TOOLS_DATA: Tool[] = [
+  // AI LLM Models
+  {
+    id: 'chatgpt',
+    name: 'ChatGPT',
+    category: 'AI Models',
+    description: 'OpenAI\'s flagship conversational AI. GPT-4 and GPT-4o models for coding, writing, analysis, and problem-solving. Web interface, API, and mobile apps available.',
+    url: 'https://chat.openai.com',
+  },
+  {
+    id: 'claude',
+    name: 'Claude',
+    category: 'AI Models',
+    description: 'Anthropic\'s AI assistant with extended context windows (200K tokens). Excellent for code analysis, documentation, and complex reasoning. Claude 3.5 Sonnet is state-of-the-art.',
+    url: 'https://claude.ai',
+  },
+  {
+    id: 'gemini',
+    name: 'Google Gemini',
+    category: 'AI Models',
+    description: 'Google\'s multimodal AI model. Gemini Pro and Ultra for text, code, images, and video. Deep integration with Google Workspace and developer tools.',
+    url: 'https://gemini.google.com',
+  },
+  {
+    id: 'perplexity',
+    name: 'Perplexity AI',
+    category: 'AI Models',
+    description: 'AI-powered search engine with real-time web access. Provides cited sources and up-to-date information. Perfect for research and learning.',
+    url: 'https://www.perplexity.ai',
+  },
+  {
+    id: 'mistral',
+    name: 'Mistral AI',
+    category: 'AI Models',
+    description: 'European AI company with powerful open-source models. Mistral Large and Mixtral for coding and reasoning. API and self-hosted options.',
+    url: 'https://mistral.ai',
+  },
+  {
+    id: 'llama',
+    name: 'Meta Llama',
+    category: 'AI Models',
+    description: 'Meta\'s open-source LLM family. Llama 3.1 with 405B parameters. Run locally or via cloud providers. Great for privacy-conscious developers.',
+    url: 'https://llama.meta.com',
+  },
+  {
+    id: 'grok',
+    name: 'Grok (xAI)',
+    category: 'AI Models',
+    description: 'Elon Musk\'s AI with real-time X (Twitter) integration. Grok-2 for conversational AI with personality. Access via X Premium.',
+    url: 'https://x.ai',
+  },
+  {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    category: 'AI Models',
+    description: 'Chinese AI lab with powerful coding models. DeepSeek Coder excels at code generation and debugging. Open-source and API available.',
+    url: 'https://www.deepseek.com',
+  },
+  {
+    id: 'cohere',
+    name: 'Cohere',
+    category: 'AI Models',
+    description: 'Enterprise-focused LLM platform. Command R+ for RAG and search. Multilingual support and customizable models.',
+    url: 'https://cohere.com',
+  },
+
   // AI Coding Assistants
   {
     id: 'cursor',
@@ -55,6 +120,27 @@ const TOOLS_DATA: Tool[] = [
     category: 'AI Coding',
     description: 'Full-stack web development in the browser powered by AI. Build, run, and deploy complete applications without local setup.',
     url: 'https://bolt.new',
+  },
+  {
+    id: 'replit-ai',
+    name: 'Replit AI',
+    category: 'AI Coding',
+    description: 'AI-powered collaborative coding environment. Code, deploy, and collaborate in the browser. Ghostwriter AI for code completion and generation.',
+    url: 'https://replit.com',
+  },
+  {
+    id: 'tabnine',
+    name: 'Tabnine',
+    category: 'AI Coding',
+    description: 'AI code completion trained on your codebase. Privacy-focused with local and cloud options. Supports all major IDEs and languages.',
+    url: 'https://www.tabnine.com',
+  },
+  {
+    id: 'amazon-q',
+    name: 'Amazon Q Developer',
+    category: 'AI Coding',
+    description: 'AWS\'s AI coding assistant. Code generation, security scanning, and AWS integration. Free tier available for individual developers.',
+    url: 'https://aws.amazon.com/q/developer',
   },
 
   // Code Editors & IDEs
@@ -429,6 +515,124 @@ const TOOLS_DATA: Tool[] = [
     description: 'Beautiful screen recordings with automatic zoom and cursor effects. Perfect for product demos and tutorials.',
     url: 'https://www.screen.studio',
   },
+  {
+    id: 'obs-studio',
+    name: 'OBS Studio',
+    category: 'Screenshots',
+    description: 'Free and open-source streaming and recording software. Professional-grade features for tutorials, streams, and demos.',
+    url: 'https://obsproject.com',
+  },
+
+  // AI Image & Design Tools
+  {
+    id: 'midjourney',
+    name: 'Midjourney',
+    category: 'AI Design',
+    description: 'Leading AI image generation tool. Create stunning visuals from text prompts. Perfect for UI mockups, illustrations, and creative assets.',
+    url: 'https://www.midjourney.com',
+  },
+  {
+    id: 'dall-e',
+    name: 'DALL-E 3',
+    category: 'AI Design',
+    description: 'OpenAI\'s image generation model. Integrated with ChatGPT Plus. Excellent for precise image generation and editing.',
+    url: 'https://openai.com/dall-e-3',
+  },
+  {
+    id: 'stable-diffusion',
+    name: 'Stable Diffusion',
+    category: 'AI Design',
+    description: 'Open-source AI image generation. Run locally or via cloud. Highly customizable with LoRAs and ControlNet.',
+    url: 'https://stability.ai',
+  },
+  {
+    id: 'leonardo-ai',
+    name: 'Leonardo.ai',
+    category: 'AI Design',
+    description: 'AI art generator with game asset focus. Consistent character generation, image-to-image, and canvas editing.',
+    url: 'https://leonardo.ai',
+  },
+  {
+    id: 'runway',
+    name: 'Runway',
+    category: 'AI Design',
+    description: 'AI video and image editing suite. Gen-2 for video generation, background removal, and motion tracking. Creative AI tools.',
+    url: 'https://runwayml.com',
+  },
+
+  // Developer Tools & Utilities
+  {
+    id: 'regex101',
+    name: 'Regex101',
+    category: 'Dev Tools',
+    description: 'Online regex tester and debugger. Real-time matching, explanation, and code generation. Supports multiple flavors.',
+    url: 'https://regex101.com',
+  },
+  {
+    id: 'json-formatter',
+    name: 'JSON Formatter',
+    category: 'Dev Tools',
+    description: 'Format, validate, and visualize JSON data. Tree view, search, and comparison tools. Essential for API development.',
+    url: 'https://jsonformatter.org',
+  },
+  {
+    id: 'crontab-guru',
+    name: 'Crontab Guru',
+    category: 'Dev Tools',
+    description: 'Cron schedule expression editor. Visual interface for creating and understanding cron jobs. Quick reference and examples.',
+    url: 'https://crontab.guru',
+  },
+  {
+    id: 'transform-tools',
+    name: 'Transform',
+    category: 'Dev Tools',
+    description: 'Convert between data formats. JSON to TypeScript, GraphQL to TypeScript, and more. Polyglot code generation.',
+    url: 'https://transform.tools',
+  },
+  {
+    id: 'devdocs',
+    name: 'DevDocs',
+    category: 'Dev Tools',
+    description: 'Unified documentation browser. Offline access to 100+ API docs. Fast search and keyboard shortcuts.',
+    url: 'https://devdocs.io',
+  },
+  {
+    id: 'can-i-use',
+    name: 'Can I Use',
+    category: 'Dev Tools',
+    description: 'Browser compatibility tables for web technologies. Check CSS, HTML, and JavaScript feature support across browsers.',
+    url: 'https://caniuse.com',
+  },
+
+  // Learning & Resources
+  {
+    id: 'frontend-mentor',
+    name: 'Frontend Mentor',
+    category: 'Learning',
+    description: 'Real-world frontend challenges. Design files, assets, and community feedback. Build portfolio projects.',
+    url: 'https://www.frontendmentor.io',
+  },
+  {
+    id: 'exercism',
+    name: 'Exercism',
+    category: 'Learning',
+    description: 'Free coding exercises with mentorship. 60+ programming languages. Learn through practice and feedback.',
+    url: 'https://exercism.org',
+  },
+  {
+    id: 'roadmap-sh',
+    name: 'Roadmap.sh',
+    category: 'Learning',
+    description: 'Developer roadmaps and learning paths. Visual guides for frontend, backend, DevOps, and more. Community-driven.',
+    url: 'https://roadmap.sh',
+  },
+  {
+    id: 'daily-dev',
+    name: 'daily.dev',
+    category: 'Learning',
+    description: 'Personalized dev news feed. Curated articles, tutorials, and discussions. Browser extension and web app.',
+    url: 'https://daily.dev',
+  },
 ];
 
 interface ToolCardProps {
@@ -441,55 +645,44 @@ interface ToolCardProps {
 function ToolCard({ tool, isSelected, onToggle, onClick }: ToolCardProps) {
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl border p-5 transition-all duration-200 ${
+      onClick={onClick}
+      className={`group relative cursor-pointer overflow-hidden rounded-xl border p-4 transition-all duration-200 ${
         isSelected
-          ? 'border-[#38f8c7]/40 bg-white/10 shadow-[0_20px_40px_rgba(56,248,199,0.15)]'
-          : 'border-white/10 bg-white/[0.05] hover:border-white/20 hover:bg-white/[0.08]'
+          ? 'border-[#38f8c7]/50 bg-gradient-to-br from-[#38f8c7]/15 to-[#38f8c7]/5 shadow-[0_8px_24px_rgba(56,248,199,0.2)]'
+          : 'border-white/10 bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.06]'
       }`}
     >
-      <div className="pointer-events-none absolute inset-0 opacity-30">
-        <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#6f9eff]/20 blur-[60px]" />
-      </div>
+      {isSelected && (
+        <div className="pointer-events-none absolute inset-0 opacity-40">
+          <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#38f8c7]/30 blur-[50px]" />
+        </div>
+      )}
 
-      <div className="relative z-10">
-        <div className="mb-3 flex items-start justify-between">
-          <button
-            onClick={onClick}
-            className="flex-1 text-left transition hover:opacity-80"
-          >
-            <h3 className="text-lg font-semibold text-white">{tool.name}</h3>
-            <p className="mt-1 text-xs uppercase tracking-wider text-white/50">
-              {tool.category}
-            </p>
-          </button>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggle();
-            }}
-            className={`flex h-8 w-8 items-center justify-center rounded-full border transition-all ${
-              isSelected
-                ? 'border-[#38f8c7]/60 bg-[#38f8c7]/20 text-[#38f8c7]'
-                : 'border-white/20 bg-white/5 text-white/40 hover:border-white/40 hover:bg-white/10 hover:text-white/60'
-            }`}
-          >
-            {isSelected ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-          </button>
+      <div className="relative z-10 flex items-center justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-base font-semibold text-white truncate">{tool.name}</h3>
+          <p className="mt-0.5 text-xs text-white/50 truncate">
+            {tool.category}
+          </p>
         </div>
 
-        <p className="mb-4 line-clamp-2 text-sm text-white/60">{tool.description}</p>
-
-        <a
-          href={tool.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-2 text-xs text-[#8c6ff7] transition hover:text-[#6f9eff]"
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle();
+          }}
+          className={`flex-shrink-0 transition-all duration-200 ${
+            isSelected
+              ? 'text-[#38f8c7] scale-110'
+              : 'text-white/30 hover:text-white/60 hover:scale-110'
+          }`}
         >
-          Visit site
-          <ExternalLink className="h-3 w-3" />
-        </a>
+          {isSelected ? (
+            <CheckCircle2 className="h-5 w-5" />
+          ) : (
+            <Circle className="h-5 w-5" />
+          )}
+        </button>
       </div>
     </div>
   );
@@ -588,12 +781,12 @@ export default function ToolsPage() {
       <div className="mb-6">
         <h1 className="text-4xl font-bold text-white">Vibe Coder Tools</h1>
         <p className="mt-2 text-white/60">
-          Curate your perfect dev stack. Click tools to see details, select the ones you use.
+          Curate your perfect dev stack. Click cards for details, tap the circle to activate tools you use.
         </p>
         <div className="mt-4 flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-[#38f8c7]" />
-            <span className="text-white/60">{selectedTools.size} tools selected</span>
+            <CheckCircle2 className="h-4 w-4 text-[#38f8c7]" />
+            <span className="text-white/60">{selectedTools.size} tools active</span>
           </div>
         </div>
       </div>
@@ -602,7 +795,7 @@ export default function ToolsPage() {
         {categories.map((category) => (
           <div key={category} className="mb-8">
             <h2 className="mb-4 text-xl font-semibold text-white/90">{category}</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {TOOLS_DATA.filter((t) => t.category === category).map((tool) => (
                 <ToolCard
                   key={tool.id}

@@ -24,12 +24,16 @@ export default function DailyMomentum({ userId }: DailyMomentumProps) {
         const data = await response.json();
         const activities = data.activities || [];
 
+        console.log('[DailyMomentum] Fetched activities:', activities.length);
+        console.log('[DailyMomentum] Activities:', activities);
+
         // Calculate total momentum points from activities
         let totalPoints = 0;
         let completedCount = 0;
 
         activities.forEach((activity: any) => {
           const points = activity.metadata?.momentumPoints || 0;
+          console.log('[DailyMomentum] Activity:', activity.type, 'Points:', points);
           totalPoints += points;
 
           if (activity.type === 'task_completed') {
@@ -37,11 +41,15 @@ export default function DailyMomentum({ userId }: DailyMomentumProps) {
           }
         });
 
+        console.log('[DailyMomentum] Total points:', totalPoints, 'Completed:', completedCount);
+
         // Ensure energy cannot go below zero
         totalPoints = Math.max(0, totalPoints);
 
         setMomentumPoints(totalPoints);
         setTasksCompletedToday(completedCount);
+      } else {
+        console.error('[DailyMomentum] Failed to fetch activities:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Failed to fetch today\'s momentum:', error);

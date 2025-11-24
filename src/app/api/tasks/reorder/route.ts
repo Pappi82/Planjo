@@ -100,12 +100,24 @@ export async function POST(request: NextRequest) {
     if (oldStatus !== newStatus) {
       const orderDifference = newOrder - oldOrder;
 
+      console.log('[Reorder] Task moved:', {
+        taskId: task._id.toString(),
+        from: oldStatus,
+        to: newStatus,
+        oldOrder,
+        newOrder,
+        orderDifference,
+        isMovingForward,
+      });
+
       if (isMovingForward) {
         // Award momentum points for forward progress (moving to higher-order columns)
         // Each column forward = 0.25 points (so moving through all 4 columns = 1 point total)
         const momentumPoints = orderDifference * 0.25;
 
-        await ActivityLog.create({
+        console.log('[Reorder] Creating forward movement activity with momentum:', momentumPoints);
+
+        const activity = await ActivityLog.create({
           userId: session.user.id,
           type: 'task_moved',
           description: `Moved task "${task.title}" forward from ${oldStatus} to ${newStatus}`,
@@ -121,11 +133,15 @@ export async function POST(request: NextRequest) {
             isForwardProgress: true,
           },
         });
+
+        console.log('[Reorder] Activity created:', activity._id.toString());
       } else if (newOrder < oldOrder) {
         // Deduct momentum points for backward movement (moving to lower-order columns)
         const momentumPoints = orderDifference * 0.25; // This will be negative
 
-        await ActivityLog.create({
+        console.log('[Reorder] Creating backward movement activity with momentum:', momentumPoints);
+
+        const activity = await ActivityLog.create({
           userId: session.user.id,
           type: 'task_moved',
           description: `Moved task "${task.title}" backward from ${oldStatus} to ${newStatus}`,
@@ -141,6 +157,8 @@ export async function POST(request: NextRequest) {
             isBackwardMovement: true,
           },
         });
+
+        console.log('[Reorder] Activity created:', activity._id.toString());
       }
     }
 
