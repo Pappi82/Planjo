@@ -31,11 +31,13 @@ export async function GET(request: NextRequest) {
     // 3. Are not archived
     // 4. Belong to active (non-archived) projects
     // 5. Are not subtasks (parentTaskId is null or doesn't exist)
+    // 6. Have urgent priority (for Focus Capsule)
     const tasks = await Task.find({
       userId: session.user.id,
       completedAt: null,
       archivedAt: null,
       projectId: { $in: activeProjectIds },
+      priority: 'urgent',
       $or: [{ parentTaskId: null }, { parentTaskId: { $exists: false } }],
     })
       .select('title priority dueDate projectId _id')

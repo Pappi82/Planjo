@@ -823,6 +823,62 @@ function FocusCapsule({
   onLaunch: (taskId: string) => void;
   onOpenVibe: () => void;
 }) {
+  const [addTaskOpen, setAddTaskOpen] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { play } = usePlanjoSound();
+  const { projects } = useProjects();
+  const { mutate: refreshFocus } = useFocusTasks(5);
+
+  // Filter to show only urgent tasks
+  const urgentTasks = tasks.filter((task) => task.priority === 'urgent');
+
+  const handleAddTask = async () => {
+    if (!newTaskTitle.trim() || !selectedProjectId) return;
+
+    setIsSubmitting(true);
+    try {
+      await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: selectedProjectId,
+          title: newTaskTitle,
+          priority: 'urgent',
+          status: 'To Do',
+        }),
+      });
+
+      play('success');
+      setNewTaskTitle('');
+      setSelectedProjectId('');
+      setAddTaskOpen(false);
+      refreshFocus();
+    } catch (error) {
+      console.error('Failed to create task:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleMarkDone = async (taskId: string) => {
+    try {
+      await fetch(`/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completedAt: new Date().toISOString() }),
+      });
+
+      play('success');
+      refreshFocus();
+    } catch (error) {
+      console.error('Failed to mark task as done:', error);
+    }
+  };
+
+  const activeProjects = projects.filter((p) => !p.archivedAt);
+
   return (
     <section className="relative overflow-hidden rounded-[28px] border border-white/12 bg-white/[0.04] p-6 text-white shadow-[0_20px_40px_rgba(15,23,42,0.45)]">
       <div className="flex items-center justify-between gap-3">
@@ -830,24 +886,38 @@ function FocusCapsule({
           <p className="text-[0.7rem] uppercase tracking-[0.35em] text-white/60">Focus capsule</p>
           <h3 className="text-xl font-semibold">Channel your next flow session</h3>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onOpenVibe}
-          className="rounded-full border border-white/25 bg-white/5 px-4 text-xs text-white/75 hover:text-white"
-        >
-          <FocusIcon className="mr-2 h-3.5 w-3.5" />
-          Vibe launcher
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              play('action');
+              setAddTaskOpen(true);
+            }}
+            className="rounded-full border border-[#ff5c87]/40 bg-[#ff5c87]/10 px-4 text-xs text-white/75 hover:border-[#ff5c87]/60 hover:bg-[#ff5c87]/20 hover:text-white"
+          >
+            <Plus className="mr-2 h-3.5 w-3.5" />
+            Add urgent
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenVibe}
+            className="rounded-full border border-white/25 bg-white/5 px-4 text-xs text-white/75 hover:text-white"
+          >
+            <FocusIcon className="mr-2 h-3.5 w-3.5" />
+            Vibe launcher
+          </Button>
+        </div>
       </div>
 
-      {tasks.length === 0 ? (
+      {urgentTasks.length === 0 ? (
         <div className="mt-6 rounded-2xl border border-dashed border-white/20 bg-white/[0.02] p-8 text-center text-white/60">
-          Drop a focus task inside any project to activate Vibe Mode.
+          No urgent tasks. Add one to focus your flow session.
         </div>
       ) : (
         <div className="mt-6 space-y-3">
-          {tasks.map((task) => {
+          {urgentTasks.map((task) => {
             const projectId =
               typeof task.projectId === 'string'
                 ? task.projectId
@@ -860,11 +930,66 @@ function FocusCapsule({
                 task={task}
                 projectTitle={projectTitle}
                 onLaunch={() => onLaunch(task._id.toString())}
+                onMarkDone={() => handleMarkDone(task._id.toString())}
               />
             );
           })}
         </div>
       )}
+
+      {/* Add Task Dialog */}
+      <Dialog open={addTaskOpen} onOpenChange={setAddTaskOpen}>
+        <DialogContent className="rounded-[28px] border-white/12 bg-slate-950/95">
+          <DialogHeader>
+            <DialogTitle>Add Urgent Task</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="task-title">Task Title *</Label>
+              <Input
+                id="task-title"
+                value={newTaskTitle}
+                onChange={(e) => setNewTaskTitle(e.target.value)}
+                placeholder="What needs urgent attention?"
+                className="mt-1"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleAddTask();
+                  }
+                }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="task-project">Project *</Label>
+              <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                <SelectTrigger id="task-project" className="mt-1">
+                  <SelectValue placeholder="Select a project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {activeProjects.map((project) => (
+                    <SelectItem key={project._id.toString()} value={project._id.toString()}>
+                      {project.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setAddTaskOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddTask}
+                disabled={!newTaskTitle.trim() || !selectedProjectId || isSubmitting}
+                className="bg-[#ff5c87] hover:bg-[#ff5c87]/90"
+              >
+                {isSubmitting ? 'Adding...' : 'Add Task'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
@@ -873,13 +998,16 @@ function FocusTaskChip({
   task,
   projectTitle,
   onLaunch,
+  onMarkDone,
 }: {
   task: TaskType;
   projectTitle?: string;
   onLaunch: () => void;
+  onMarkDone?: () => void;
 }) {
   const dueDate = task.dueDate ? new Date(task.dueDate) : null;
   const priorityColor = priorityColors[task.priority] || '#6f9eff';
+  const { play } = usePlanjoSound();
 
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-white/12 bg-white/[0.03] p-4 transition hover:-translate-y-[2px] hover:border-white/40 hover:bg-white/[0.08]">
@@ -888,7 +1016,7 @@ function FocusTaskChip({
         style={{ background: `linear-gradient(135deg, ${priorityColor}22 0%, transparent 70%)` }}
       />
       <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="flex-1">
           <p className="text-sm font-semibold text-white">{task.title}</p>
           <div className="mt-2 flex flex-wrap gap-3 text-xs text-white/60">
             <span>{projectTitle || 'Untitled project'}</span>
@@ -896,13 +1024,32 @@ function FocusTaskChip({
             <span style={{ color: priorityColor }}>Priority {task.priority}</span>
           </div>
         </div>
-        <Button
-          onClick={onLaunch}
-          className="self-start rounded-full border border-white/25 bg-white/10 px-4 text-xs text-white hover:bg-white/20 sm:self-auto"
-        >
-          <FocusIcon className="mr-2 h-3.5 w-3.5" />
-          Launch
-        </Button>
+        <div className="flex items-center gap-2">
+          {onMarkDone && (
+            <Button
+              onClick={() => {
+                play('success');
+                onMarkDone();
+              }}
+              variant="ghost"
+              size="sm"
+              className="rounded-full border border-[#38f8c7]/40 bg-[#38f8c7]/10 px-4 text-xs text-white/75 hover:border-[#38f8c7]/60 hover:bg-[#38f8c7]/20 hover:text-white"
+            >
+              <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
+              Done
+            </Button>
+          )}
+          <Button
+            onClick={() => {
+              play('action');
+              onLaunch();
+            }}
+            className="self-start rounded-full border border-white/25 bg-white/10 px-4 text-xs text-white hover:bg-white/20 sm:self-auto"
+          >
+            <FocusIcon className="mr-2 h-3.5 w-3.5" />
+            Launch
+          </Button>
+        </div>
       </div>
     </div>
   );
