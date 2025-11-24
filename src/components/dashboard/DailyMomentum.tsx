@@ -28,13 +28,19 @@ export default function DailyMomentum({ userId }: DailyMomentumProps) {
         console.log('[DailyMomentum] Activities:', activities);
 
         // Calculate total momentum points from activities
+        // Only count positive momentum (forward progress and completions)
+        // Backward movements don't deduct points, they just don't add any
         let totalPoints = 0;
         let completedCount = 0;
 
         activities.forEach((activity: any) => {
           const points = activity.metadata?.momentumPoints || 0;
           console.log('[DailyMomentum] Activity:', activity.type, 'Points:', points);
-          totalPoints += points;
+
+          // Only add positive momentum points
+          if (points > 0) {
+            totalPoints += points;
+          }
 
           if (activity.type === 'task_completed') {
             completedCount++;
@@ -42,9 +48,6 @@ export default function DailyMomentum({ userId }: DailyMomentumProps) {
         });
 
         console.log('[DailyMomentum] Total points:', totalPoints, 'Completed:', completedCount);
-
-        // Ensure energy cannot go below zero
-        totalPoints = Math.max(0, totalPoints);
 
         setMomentumPoints(totalPoints);
         setTasksCompletedToday(completedCount);
