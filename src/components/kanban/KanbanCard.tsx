@@ -73,7 +73,7 @@ export default function KanbanCard({ task, onClick, isDragging, accentColor }: K
       {...listeners}
       onClick={onClick}
       className={`group relative flex-shrink-0 overflow-hidden rounded-[22px] border border-white/12 bg-white/[0.06] p-4 text-white shadow-[0_18px_36px_rgba(5,8,26,0.45)] transition-all duration-300 ${
-        isBeingDragged ? 'scale-[1.02] ring-2 ring-white/20' : 'cursor-grab active:cursor-grabbing hover:scale-[1.02] hover:border-white/40 hover:bg-white/[0.1] hover:shadow-[0_20px_50px_rgba(5,8,26,0.6),0_0_30px_rgba(111,158,255,0.15)]'
+        isBeingDragged ? 'ring-2 ring-white/20' : 'cursor-grab active:cursor-grabbing hover:border-white/40 hover:bg-white/[0.1] hover:shadow-[0_20px_50px_rgba(5,8,26,0.6),0_0_30px_rgba(111,158,255,0.15)]'
       }`}
     >
       <div className="pointer-events-none absolute inset-0 opacity-40 transition-opacity duration-300 group-hover:opacity-70">
@@ -94,7 +94,7 @@ export default function KanbanCard({ task, onClick, isDragging, accentColor }: K
             <Button
               variant="ghost"
               size="icon"
-              className={`h-7 w-7 rounded-full border transition-all duration-300 hover:translate-y-0 ${
+              className={`h-7 w-7 rounded-full border transition-all duration-300 ${
                 isCloudTask
                   ? 'border-[#4ecbff]/50 bg-[#4ecbff]/20 opacity-100 hover:bg-[#4ecbff]/30 hover:border-[#4ecbff]/70 hover:shadow-[0_0_20px_rgba(78,203,255,0.5)]'
                   : 'border-white/15 bg-white/10 opacity-0 group-hover:opacity-100 hover:bg-white/20 hover:border-white/30 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]'

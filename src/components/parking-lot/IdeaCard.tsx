@@ -15,7 +15,7 @@ interface IdeaCardProps {
 
 export default function IdeaCard({ item, onEdit, onDelete, onConvert }: IdeaCardProps) {
   return (
-    <div className="relative overflow-hidden rounded-[26px] border border-white/12 bg-white/[0.05] p-6 text-white shadow-[0_22px_44px_rgba(5,8,26,0.45)] transition hover:-translate-y-1 hover:border-white/40 hover:bg-white/[0.1]">
+    <div className="relative overflow-hidden rounded-[26px] border border-white/12 bg-white/[0.05] p-6 text-white shadow-[0_22px_44px_rgba(5,8,26,0.45)] transition hover:border-white/40 hover:bg-white/[0.1] hover:shadow-[0_25px_50px_rgba(5,8,26,0.55)]">
       <div className="pointer-events-none absolute inset-0 opacity-50">
         <div
           className="absolute -top-14 right-10 h-40 w-40 rounded-full blur-[110px]"
