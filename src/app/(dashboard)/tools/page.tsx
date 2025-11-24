@@ -1,7 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ExternalLink, Check, X, CheckCircle2, Circle } from 'lucide-react';
+import { ExternalLink, Check, X, CheckCircle2, Circle, Trash2, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Tool {
   id: string;
@@ -10,6 +16,7 @@ interface Tool {
   description: string;
   url: string;
   icon?: string;
+  isCustom?: boolean;
 }
 
 const TOOLS_DATA: Tool[] = [
@@ -981,9 +988,10 @@ interface ToolCardProps {
   isSelected: boolean;
   onToggle: () => void;
   onClick: () => void;
+  onDelete?: () => void;
 }
 
-function ToolCard({ tool, isSelected, onToggle, onClick }: ToolCardProps) {
+function ToolCard({ tool, isSelected, onToggle, onClick, onDelete }: ToolCardProps) {
   return (
     <div
       onClick={onClick}
@@ -1007,23 +1015,37 @@ function ToolCard({ tool, isSelected, onToggle, onClick }: ToolCardProps) {
           </p>
         </div>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggle();
-          }}
-          className={`flex-shrink-0 transition-all duration-200 ${
-            isSelected
-              ? 'text-[#38f8c7] scale-110'
-              : 'text-white/30 hover:text-white/60 hover:scale-110'
-          }`}
-        >
-          {isSelected ? (
-            <CheckCircle2 className="h-5 w-5" />
-          ) : (
-            <Circle className="h-5 w-5" />
+        <div className="flex items-center gap-2">
+          {onDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              className="flex-shrink-0 text-white/30 transition-all duration-200 hover:text-[#ff5c87] hover:scale-110"
+              title="Delete custom tool"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
           )}
-        </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle();
+            }}
+            className={`flex-shrink-0 transition-all duration-200 ${
+              isSelected
+                ? 'text-[#38f8c7] scale-110'
+                : 'text-white/30 hover:text-white/60 hover:scale-110'
+            }`}
+          >
+            {isSelected ? (
+              <CheckCircle2 className="h-5 w-5" />
+            ) : (
+              <Circle className="h-5 w-5" />
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1032,9 +1054,10 @@ function ToolCard({ tool, isSelected, onToggle, onClick }: ToolCardProps) {
 interface ToolModalProps {
   tool: Tool;
   onClose: () => void;
+  onDelete?: () => void;
 }
 
-function ToolModal({ tool, onClose }: ToolModalProps) {
+function ToolModal({ tool, onClose, onDelete }: ToolModalProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
@@ -1067,15 +1090,28 @@ function ToolModal({ tool, onClose }: ToolModalProps) {
 
           <p className="mb-6 text-white/80">{tool.description}</p>
 
-          <a
-            href={tool.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-[#8c6ff7]/40 bg-[#8c6ff7]/10 px-6 py-3 text-sm font-semibold text-white transition hover:border-[#8c6ff7]/60 hover:bg-[#8c6ff7]/20"
-          >
-            Visit {tool.name}
-            <ExternalLink className="h-4 w-4" />
-          </a>
+          <div className="flex items-center gap-3">
+            <a
+              href={tool.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-[#8c6ff7]/40 bg-[#8c6ff7]/10 px-6 py-3 text-sm font-semibold text-white transition hover:border-[#8c6ff7]/60 hover:bg-[#8c6ff7]/20"
+            >
+              Visit {tool.name}
+              <ExternalLink className="h-4 w-4" />
+            </a>
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDelete}
+                className="rounded-full border border-white/10 bg-white/5 text-[#ff5c87] hover:bg-[#ff5c87]/10 hover:text-[#ff5c87]"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Tool
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -1086,6 +1122,14 @@ export default function ToolsPage() {
   const [selectedTools, setSelectedTools] = useState<Set<string>>(new Set());
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [customTools, setCustomTools] = useState<Tool[]>([]);
+  const [addToolDialogOpen, setAddToolDialogOpen] = useState(false);
+  const [newTool, setNewTool] = useState({
+    name: '',
+    category: 'Custom',
+    description: '',
+    url: '',
+  });
 
   useEffect(() => {
     // Load selected tools from localStorage
@@ -1093,6 +1137,13 @@ export default function ToolsPage() {
     if (saved) {
       setSelectedTools(new Set(JSON.parse(saved)));
     }
+
+    // Load custom tools from localStorage
+    const savedCustomTools = localStorage.getItem('planjo-custom-tools');
+    if (savedCustomTools) {
+      setCustomTools(JSON.parse(savedCustomTools));
+    }
+
     setIsLoading(false);
   }, []);
 
@@ -1107,7 +1158,48 @@ export default function ToolsPage() {
     localStorage.setItem('planjo-selected-tools', JSON.stringify(Array.from(newSelected)));
   };
 
-  const categories = Array.from(new Set(TOOLS_DATA.map((t) => t.category)));
+  const handleAddTool = () => {
+    if (!newTool.name || !newTool.url) {
+      return;
+    }
+
+    const tool: Tool = {
+      id: `custom-${Date.now()}`,
+      name: newTool.name,
+      category: newTool.category,
+      description: newTool.description,
+      url: newTool.url,
+      isCustom: true,
+    };
+
+    const updatedCustomTools = [...customTools, tool];
+    setCustomTools(updatedCustomTools);
+    localStorage.setItem('planjo-custom-tools', JSON.stringify(updatedCustomTools));
+
+    // Reset form
+    setNewTool({
+      name: '',
+      category: 'Custom',
+      description: '',
+      url: '',
+    });
+    setAddToolDialogOpen(false);
+  };
+
+  const handleDeleteTool = (toolId: string) => {
+    const updatedCustomTools = customTools.filter((t) => t.id !== toolId);
+    setCustomTools(updatedCustomTools);
+    localStorage.setItem('planjo-custom-tools', JSON.stringify(updatedCustomTools));
+
+    // Also remove from selected tools
+    const newSelected = new Set(selectedTools);
+    newSelected.delete(toolId);
+    setSelectedTools(newSelected);
+    localStorage.setItem('planjo-selected-tools', JSON.stringify(Array.from(newSelected)));
+  };
+
+  const allTools = [...TOOLS_DATA, ...customTools];
+  const categories = Array.from(new Set(allTools.map((t) => t.category)));
 
   if (isLoading) {
     return (
@@ -1120,10 +1212,21 @@ export default function ToolsPage() {
   return (
     <div className="flex h-full flex-col">
       <div className="mb-6">
-        <h1 className="text-4xl font-bold text-white">Vibe Coder Tools</h1>
-        <p className="mt-2 text-white/60">
-          Curate your perfect dev stack. Click cards for details, tap the circle to activate tools you use.
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-white">Vibe Coder Tools</h1>
+            <p className="mt-2 text-white/60">
+              Curate your perfect dev stack. Click cards for details, tap the circle to activate tools you use.
+            </p>
+          </div>
+          <Button
+            onClick={() => setAddToolDialogOpen(true)}
+            className="rounded-full bg-[#8c6ff7] hover:bg-[#8c6ff7]/90"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Tool
+          </Button>
+        </div>
         <div className="mt-4 flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-[#38f8c7]" />
@@ -1137,13 +1240,14 @@ export default function ToolsPage() {
           <div key={category} className="mb-8">
             <h2 className="mb-4 text-xl font-semibold text-white/90">{category}</h2>
             <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {TOOLS_DATA.filter((t) => t.category === category).map((tool) => (
+              {allTools.filter((t) => t.category === category).map((tool) => (
                 <ToolCard
                   key={tool.id}
                   tool={tool}
                   isSelected={selectedTools.has(tool.id)}
                   onToggle={() => toggleTool(tool.id)}
                   onClick={() => setSelectedTool(tool)}
+                  onDelete={tool.isCustom ? () => handleDeleteTool(tool.id) : undefined}
                 />
               ))}
             </div>
@@ -1152,8 +1256,93 @@ export default function ToolsPage() {
       </div>
 
       {selectedTool && (
-        <ToolModal tool={selectedTool} onClose={() => setSelectedTool(null)} />
+        <ToolModal
+          tool={selectedTool}
+          onClose={() => setSelectedTool(null)}
+          onDelete={selectedTool.isCustom ? () => {
+            handleDeleteTool(selectedTool.id);
+            setSelectedTool(null);
+          } : undefined}
+        />
       )}
+
+      <Dialog open={addToolDialogOpen} onOpenChange={setAddToolDialogOpen}>
+        <DialogContent className="rounded-[28px] border-white/12 bg-slate-950/95">
+          <DialogHeader>
+            <DialogTitle>Add Custom Tool</DialogTitle>
+            <DialogDescription>
+              Add your own tools to your Vibe Coder stack
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="tool-name">Tool Name *</Label>
+              <Input
+                id="tool-name"
+                value={newTool.name}
+                onChange={(e) => setNewTool({ ...newTool, name: e.target.value })}
+                placeholder="e.g., My Awesome Tool"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="tool-category">Category</Label>
+              <Select
+                value={newTool.category}
+                onValueChange={(value) => setNewTool({ ...newTool, category: value })}
+              >
+                <SelectTrigger id="tool-category" className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="Custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="tool-url">URL *</Label>
+              <Input
+                id="tool-url"
+                value={newTool.url}
+                onChange={(e) => setNewTool({ ...newTool, url: e.target.value })}
+                placeholder="https://example.com"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="tool-description">Description</Label>
+              <Textarea
+                id="tool-description"
+                value={newTool.description}
+                onChange={(e) => setNewTool({ ...newTool, description: e.target.value })}
+                placeholder="What does this tool do?"
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setAddToolDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddTool}
+                disabled={!newTool.name || !newTool.url}
+                className="bg-[#8c6ff7] hover:bg-[#8c6ff7]/90"
+              >
+                Add Tool
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
