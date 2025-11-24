@@ -988,10 +988,9 @@ interface ToolCardProps {
   isSelected: boolean;
   onToggle: () => void;
   onClick: () => void;
-  onDelete?: () => void;
 }
 
-function ToolCard({ tool, isSelected, onToggle, onClick, onDelete }: ToolCardProps) {
+function ToolCard({ tool, isSelected, onToggle, onClick }: ToolCardProps) {
   return (
     <div
       onClick={onClick}
@@ -1010,42 +1009,25 @@ function ToolCard({ tool, isSelected, onToggle, onClick, onDelete }: ToolCardPro
       <div className="relative z-10 flex items-center justify-between gap-3">
         <div className="flex-1 min-w-0">
           <h3 className="text-base font-semibold text-white truncate">{tool.name}</h3>
-          <p className="mt-0.5 text-xs text-white/50 truncate">
-            {tool.category}
-          </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          {onDelete && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-              className="flex-shrink-0 text-white/30 transition-all duration-200 hover:text-[#ff5c87] hover:scale-110"
-              title="Delete custom tool"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle();
+          }}
+          className={`flex-shrink-0 transition-all duration-200 ${
+            isSelected
+              ? 'text-[#38f8c7] scale-110'
+              : 'text-white/30 hover:text-white/60 hover:scale-110'
+          }`}
+        >
+          {isSelected ? (
+            <CheckCircle2 className="h-5 w-5" />
+          ) : (
+            <Circle className="h-5 w-5" />
           )}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggle();
-            }}
-            className={`flex-shrink-0 transition-all duration-200 ${
-              isSelected
-                ? 'text-[#38f8c7] scale-110'
-                : 'text-white/30 hover:text-white/60 hover:scale-110'
-            }`}
-          >
-            {isSelected ? (
-              <CheckCircle2 className="h-5 w-5" />
-            ) : (
-              <Circle className="h-5 w-5" />
-            )}
-          </button>
-        </div>
+        </button>
       </div>
     </div>
   );
@@ -1247,7 +1229,6 @@ export default function ToolsPage() {
                   isSelected={selectedTools.has(tool.id)}
                   onToggle={() => toggleTool(tool.id)}
                   onClick={() => setSelectedTool(tool)}
-                  onDelete={tool.isCustom ? () => handleDeleteTool(tool.id) : undefined}
                 />
               ))}
             </div>
