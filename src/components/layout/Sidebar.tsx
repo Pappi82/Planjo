@@ -12,6 +12,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  Wrench,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ const navigation = [
   { name: 'Parking Lot', href: '/parking-lot', icon: Lightbulb, hint: 'Idea stash' },
   { name: 'Journal', href: '/journal', icon: BookOpen, hint: 'Daily log' },
   { name: 'Analytics', href: '/analytics', icon: BarChart3, hint: 'Momentum' },
+  { name: 'Tools', href: '/tools', icon: Wrench, hint: 'Vibe stack' },
 ];
 
 const bottomNavigation = [{ name: 'Settings', href: '/settings', icon: Settings }];
