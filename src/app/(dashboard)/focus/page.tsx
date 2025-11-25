@@ -27,8 +27,10 @@ import {
 } from '@/components/ui/select';
 import { useProjects } from '@/hooks/useProjects';
 import { useFocusTasks } from '@/hooks/useFocusTasks';
+import { useColumns } from '@/hooks/useTasks';
 import { usePlanjoSound } from '@/components/providers/PlanjoExperienceProvider';
 import { Project, Task as TaskType } from '@/types';
+import TaskDetail from '@/components/tasks/TaskDetail';
 
 const priorityColors: Record<string, string> = {
   urgent: '#ff5c87',
@@ -48,6 +50,15 @@ export default function FocusPage() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+
+  // Find the selected task and get its project's columns
+  const selectedTask = selectedTaskId
+    ? focusTasks.find((t) => t._id.toString() === selectedTaskId) || null
+    : null;
+
+  const selectedTaskProjectId = selectedTask?.projectId?.toString();
+  const { columns } = useColumns(selectedTaskProjectId);
 
   const projectLookup = projects.reduce((acc, project) => {
     acc[project._id.toString()] = project;
@@ -94,6 +105,46 @@ export default function FocusPage() {
       refreshFocus();
     } catch (error) {
       console.error('Failed to mark task as done:', error);
+    }
+  };
+
+  const handleUpdateTask = async (taskId: string, data: any) => {
+    try {
+      await fetch(`/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      refreshFocus();
+    } catch (error) {
+      console.error('Failed to update task:', error);
+      throw error;
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      await fetch(`/api/tasks/${taskId}`, {
+        method: 'DELETE',
+      });
+      refreshFocus();
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      throw error;
+    }
+  };
+
+  const handleAddSubtask = async (parentId: string, title: string) => {
+    try {
+      await fetch(`/api/tasks/${parentId}/subtasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title }),
+      });
+      refreshFocus();
+    } catch (error) {
+      console.error('Failed to add subtask:', error);
+      throw error;
     }
   };
 
@@ -160,6 +211,7 @@ export default function FocusPage() {
                   projectTitle={projectTitle}
                   onMarkDone={() => handleMarkDone(task._id.toString())}
                   onRefresh={refreshFocus}
+                  onClick={() => setSelectedTaskId(task._id.toString())}
                 />
               );
             })}
@@ -220,6 +272,16 @@ export default function FocusPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <TaskDetail
+        task={selectedTask}
+        open={!!selectedTask}
+        onClose={() => setSelectedTaskId(null)}
+        onUpdate={handleUpdateTask}
+        onDelete={handleDeleteTask}
+        onAddSubtask={handleAddSubtask}
+        columns={columns}
+      />
     </div>
   );
 }
@@ -229,11 +291,13 @@ function FocusTaskChip({
   projectTitle,
   onMarkDone,
   onRefresh,
+  onClick,
 }: {
   task: TaskType;
   projectTitle?: string;
   onMarkDone?: () => void;
   onRefresh?: () => void;
+  onClick?: () => void;
 }) {
   const [isCloudTask, setIsCloudTask] = useState(task.isCloudTask || false);
   const [isTogglingCloud, setIsTogglingCloud] = useState(false);
@@ -266,7 +330,10 @@ function FocusTaskChip({
   };
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/12 bg-white/[0.03] p-4 transition hover:-translate-y-[2px] hover:border-white/40 hover:bg-white/[0.08]">
+    <div
+      onClick={onClick}
+      className="group relative overflow-hidden rounded-2xl border border-white/12 bg-white/[0.03] p-4 transition hover:-translate-y-[2px] hover:border-white/40 hover:bg-white/[0.08] cursor-pointer"
+    >
       <div
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{ background: `linear-gradient(135deg, ${priorityColor}22 0%, transparent 70%)` }}
@@ -297,7 +364,8 @@ function FocusTaskChip({
           </Button>
           {onMarkDone && (
             <Button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 play('success');
                 onMarkDone();
               }}
