@@ -14,6 +14,7 @@ import {
   LogOut,
   Wrench,
   Blocks,
+  Focus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import { usePlanjoSound } from '@/components/providers/PlanjoExperienceProvider'
 const navigation = [
   { name: 'Command Deck', href: '/', icon: LayoutDashboard, hint: 'Overview' },
   { name: 'Projects', href: '/projects', icon: FolderKanban, hint: 'Boards & docs' },
+  { name: 'Focus', href: '/focus', icon: Focus, hint: 'Flow session' },
   { name: 'Parking Lot', href: '/parking-lot', icon: Lightbulb, hint: 'Idea stash' },
   { name: 'Journal', href: '/journal', icon: BookOpen, hint: 'Daily log' },
   { name: 'Analytics', href: '/analytics', icon: BarChart3, hint: 'Momentum' },
