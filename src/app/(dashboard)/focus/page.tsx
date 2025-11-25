@@ -7,6 +7,7 @@ import {
   Plus,
   Focus as FocusIcon,
   CheckCircle2,
+  Cloud,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -101,7 +102,7 @@ export default function FocusPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#05060f] via-[#0a0d1f] to-[#05060f] text-white">
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -144,7 +145,7 @@ export default function FocusPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {urgentTasks.map((task) => {
               const projectId =
                 typeof task.projectId === 'string'
@@ -158,6 +159,7 @@ export default function FocusPage() {
                   task={task}
                   projectTitle={projectTitle}
                   onMarkDone={() => handleMarkDone(task._id.toString())}
+                  onRefresh={refreshFocus}
                 />
               );
             })}
@@ -226,14 +228,42 @@ function FocusTaskChip({
   task,
   projectTitle,
   onMarkDone,
+  onRefresh,
 }: {
   task: TaskType;
   projectTitle?: string;
   onMarkDone?: () => void;
+  onRefresh?: () => void;
 }) {
+  const [isCloudTask, setIsCloudTask] = useState(task.isCloudTask || false);
+  const [isTogglingCloud, setIsTogglingCloud] = useState(false);
   const dueDate = task.dueDate ? new Date(task.dueDate) : null;
   const priorityColor = priorityColors[task.priority] || '#6f9eff';
   const { play } = usePlanjoSound();
+
+  const handleCloudToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isTogglingCloud) return;
+
+    setIsTogglingCloud(true);
+    try {
+      const response = await fetch(`/api/tasks/${task._id.toString()}/cloud`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isCloudTask: !isCloudTask }),
+      });
+
+      if (response.ok) {
+        setIsCloudTask(!isCloudTask);
+        play('action');
+        onRefresh?.();
+      }
+    } catch (error) {
+      console.error('Failed to toggle cloud status:', error);
+    } finally {
+      setIsTogglingCloud(false);
+    }
+  };
 
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-white/12 bg-white/[0.03] p-4 transition hover:-translate-y-[2px] hover:border-white/40 hover:bg-white/[0.08]">
@@ -250,20 +280,37 @@ function FocusTaskChip({
             <span style={{ color: priorityColor }}>Priority {task.priority}</span>
           </div>
         </div>
-        {onMarkDone && (
+        <div className="flex gap-2">
           <Button
-            onClick={() => {
-              play('success');
-              onMarkDone();
-            }}
+            onClick={handleCloudToggle}
             variant="ghost"
             size="sm"
-            className="rounded-full border border-[#38f8c7]/40 bg-[#38f8c7]/10 px-4 text-xs text-white/75 hover:border-[#38f8c7]/60 hover:bg-[#38f8c7]/20 hover:text-white"
+            disabled={isTogglingCloud}
+            className={`rounded-full border px-4 text-xs transition-all ${
+              isCloudTask
+                ? 'border-[#4ecbff]/60 bg-[#4ecbff]/20 text-[#4ecbff] hover:border-[#4ecbff]/80 hover:bg-[#4ecbff]/30'
+                : 'border-white/20 bg-white/5 text-white/60 hover:border-[#4ecbff]/40 hover:bg-[#4ecbff]/10 hover:text-white/80'
+            }`}
+            title={isCloudTask ? "Remove from Quick Wins" : "Mark as Quick Win"}
           >
-            <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
-            Done
+            <Cloud className="mr-2 h-3.5 w-3.5" />
+            {isCloudTask ? 'Quick Win' : 'Quick Win'}
           </Button>
-        )}
+          {onMarkDone && (
+            <Button
+              onClick={() => {
+                play('success');
+                onMarkDone();
+              }}
+              variant="ghost"
+              size="sm"
+              className="rounded-full border border-[#38f8c7]/40 bg-[#38f8c7]/10 px-4 text-xs text-white/75 hover:border-[#38f8c7]/60 hover:bg-[#38f8c7]/20 hover:text-white"
+            >
+              <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
+              Done
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
