@@ -33,7 +33,6 @@ export default function TaskDetail({
   onAddSubtask,
   columns,
 }: TaskDetailProps) {
-  const router = useRouter();
   const [formData, setFormData] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
