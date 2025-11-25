@@ -84,7 +84,6 @@ export default function ProjectsPage() {
       <PageHero
         label="Projects"
         title="Launchpads"
-        description="Curate active bets, drag tickets, and keep your solo pipeline addictive."
         actions={
           <Button
             onClick={() => {
@@ -97,17 +96,10 @@ export default function ProjectsPage() {
             Launch project
           </Button>
         }
-        meta={
-          <div className="space-y-1 text-right sm:text-left">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Active</p>
-            <p className="text-sm text-white">{activeCount} running orbits</p>
-          </div>
-        }
       />
 
       <SectionSurface
         title="Your constellation"
-        description="Pin your current initiatives. Drift between boards, docs, and vault without losing the glow."
       >
         {isLoading ? (
           <div className="flex h-48 flex-col items-center justify-center gap-3 rounded-[24px] border border-dashed border-white/12 bg-white/[0.03] text-white/60">

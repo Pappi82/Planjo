@@ -7,7 +7,6 @@ import { signOut } from 'next-auth/react';
 import {
   LayoutDashboard,
   FolderKanban,
-  Lightbulb,
   BookOpen,
   BarChart3,
   Settings,
@@ -22,15 +21,14 @@ import { Button } from '@/components/ui/button';
 import { usePlanjoSound } from '@/components/providers/PlanjoExperienceProvider';
 
 const navigation = [
-  { name: 'Command Deck', href: '/', icon: LayoutDashboard, hint: 'Overview' },
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard, hint: 'Overview' },
   { name: 'Projects', href: '/projects', icon: FolderKanban, hint: 'Boards & docs' },
   { name: 'Focus', href: '/focus', icon: Focus, hint: 'Flow session' },
-  { name: 'Parking Lot', href: '/parking-lot', icon: Lightbulb, hint: 'Idea stash' },
   { name: 'Prompts', href: '/prompts', icon: BookmarkPlus, hint: 'Saved prompts' },
-  { name: 'Journal', href: '/journal', icon: BookOpen, hint: 'Daily log' },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3, hint: 'Momentum' },
   { name: 'Tools', href: '/tools', icon: Wrench, hint: 'Vibe stack' },
   { name: 'MCPs', href: '/mcps', icon: Blocks, hint: 'AI servers' },
+  { name: 'Journal', href: '/journal', icon: BookOpen, hint: 'Daily log' },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3, hint: 'Momentum' },
 ];
 
 const bottomNavigation = [{ name: 'Settings', href: '/settings', icon: Settings }];
@@ -161,9 +159,6 @@ function PlanjoLogo() {
       </div>
       <div className="flex flex-col">
         <h1 className="text-3xl font-bold tracking-tight">Planjo</h1>
-        <p className="mt-0.5 text-[0.65rem] uppercase tracking-[0.3em] text-white/40">
-          Momentum ops
-        </p>
       </div>
     </Link>
   );

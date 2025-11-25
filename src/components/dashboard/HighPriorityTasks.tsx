@@ -110,15 +110,6 @@ export default function HighPriorityTasks({ userId }: HighPriorityTasksProps) {
             )}
           </div>
         )}
-
-        {urgentCount > 0 && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg border border-[#ff5c87]/30 bg-[#ff5c87]/10 px-3 py-2">
-            <AlertCircle className="h-4 w-4 text-[#ff5c87]" />
-            <p className="text-xs text-white/90">
-              <span className="font-semibold">{urgentCount}</span> urgent task{urgentCount !== 1 ? 's' : ''} need immediate attention
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

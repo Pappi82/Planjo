@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Cloud, ChevronRight, Zap } from 'lucide-react';
+import { Cloud, ChevronRight } from 'lucide-react';
 import { Task, Project } from '@/types';
 import { useRouter } from 'next/navigation';
 
@@ -102,13 +102,6 @@ export default function CloudTasks({ userId }: CloudTasksProps) {
                   +{tasks.length - 4} more quick wins
                 </button>
               )}
-            </div>
-
-            <div className="mt-4 flex items-center gap-2 rounded-lg border border-[#4ecbff]/30 bg-[#4ecbff]/10 px-3 py-2">
-              <Zap className="h-4 w-4 text-[#4ecbff]" />
-              <p className="text-xs text-white/90">
-                Quick wins are easy tasks you can knock out fast
-              </p>
             </div>
           </>
         )}

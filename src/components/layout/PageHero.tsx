@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 interface PageHeroProps {
   label: string;
   title: string;
-  description: string;
+  description?: string;
   highlight?: ReactNode;
   actions?: ReactNode;
   meta?: ReactNode;
@@ -23,7 +23,7 @@ export function PageHero({ label, title, description, highlight, actions, meta }
           <p className="text-[0.75rem] uppercase tracking-[0.4em] text-white/60">{label}</p>
           <div className="space-y-3">
             <h1 className="text-3xl font-semibold md:text-4xl">{title}</h1>
-            <p className="text-sm leading-relaxed text-white/70">{description}</p>
+            {description && <p className="text-sm leading-relaxed text-white/70">{description}</p>}
           </div>
           {highlight ? <div className="flex flex-wrap gap-3">{highlight}</div> : null}
         </div>

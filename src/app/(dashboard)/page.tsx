@@ -384,11 +384,6 @@ export default function DashboardPage() {
   const now = new Date();
   const greeting = getTimeGreeting(now);
   const firstName = session?.user?.name?.split(' ')[0] || 'maker';
-  const activeProjects = projects.filter((project) => project.status === 'active').length;
-  const workspaceSummary =
-    projects.length === 0
-      ? 'You have a blank canvas — capture a project, drop an idea, or log how you feel to start the momentum.'
-      : `You’re orbiting ${projects.length} projects (${activeProjects} active) with ${latestWeek} tasks shipped last week. Keep the cadence flowing.`;
   const shippingRate = featuredProjects.length
     ? Math.round(
         (featuredProjects.reduce((total, project) => {
@@ -421,9 +416,6 @@ export default function DashboardPage() {
               <h1 className="text-3xl font-semibold text-white md:text-4xl">
                 {greeting}, {firstName}
               </h1>
-              <p className="text-sm leading-relaxed text-white/70">
-                {workspaceSummary}
-              </p>
             </div>
             <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
               <Button
@@ -743,9 +735,6 @@ function ProjectConstellationCard({
           </Badge>
           <div>
             <h3 className="text-2xl font-semibold">{project.title}</h3>
-            <p className="mt-2 text-sm text-white/70">
-              {project.description || 'Sketch the story for this project to guide your next sprint.'}
-            </p>
           </div>
         </div>
 
@@ -796,7 +785,7 @@ function FocusCapsulePreview({
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-[0.7rem] uppercase tracking-[0.35em] text-white/60">Focus capsule</p>
-          <h3 className="text-xl font-semibold">Channel your next flow session</h3>
+          <h3 className="text-xl font-semibold">Next flow session</h3>
         </div>
         <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#ff5c87]/30 bg-[#ff5c87]/10 transition-all group-hover:border-[#ff5c87]/50 group-hover:bg-[#ff5c87]/20">
           <FocusIcon className="h-5 w-5 text-[#ff5c87]" />

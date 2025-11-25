@@ -196,14 +196,6 @@ export default function DailyMomentum({ userId }: DailyMomentumProps) {
                 Complete tasks or move them forward to build momentum
               </p>
             )}
-            {momentumPoints >= 3 && (
-              <div className="mt-3 flex items-center gap-2 rounded-lg border border-[#38f8c7]/30 bg-[#38f8c7]/10 px-3 py-2">
-                <Flame className="h-4 w-4 text-[#38f8c7]" />
-                <p className="text-xs text-white/90">
-                  You're on fire! Keep the momentum going!
-                </p>
-              </div>
-            )}
           </>
         )}
       </div>

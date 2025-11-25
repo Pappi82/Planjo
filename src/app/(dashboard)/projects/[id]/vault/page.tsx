@@ -106,8 +106,7 @@ export default function VaultPage() {
     <div className="space-y-10">
       <PageHero
         label="Vault"
-        title="Secure vault"
-        description="Store API keys, passwords, sensitive credentials, and files like .env with server-side encryption."
+        title={project?.title || 'Secure vault'}
         highlight={
           <div className="flex flex-wrap items-center gap-3 text-xs">
             {project && (
@@ -148,7 +147,6 @@ export default function VaultPage() {
 
       <SectionSurface
         title="Encrypted credentials"
-        description="All credentials are encrypted server-side before storage. Select a category to view or add new credentials."
       >
         <Tabs
           value={activeTab}
