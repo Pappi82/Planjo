@@ -125,8 +125,7 @@ export default function DashboardPage() {
         const aRate = statsMap[a._id.toString()]?.completionRate || 0;
         const bRate = statsMap[b._id.toString()]?.completionRate || 0;
         return bRate - aRate;
-      })
-      .slice(0, 6);
+      });
   }, [projects, statsMap]);
 
   const weeklyVelocity = analytics?.weeklyVelocity || {};
@@ -693,7 +692,7 @@ function ProjectConstellation({
       </div>
 
       <div className="relative z-10 mt-8">
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((project, index) => (
             <ProjectConstellationCard
               key={project._id.toString()}
