@@ -286,15 +286,14 @@ function FocusTaskChip({
             variant="ghost"
             size="sm"
             disabled={isTogglingCloud}
-            className={`rounded-full border px-4 text-xs transition-all ${
+            className={`h-8 w-8 rounded-full border p-0 transition-all ${
               isCloudTask
-                ? 'border-[#4ecbff]/60 bg-[#4ecbff]/20 text-[#4ecbff] hover:border-[#4ecbff]/80 hover:bg-[#4ecbff]/30'
-                : 'border-white/20 bg-white/5 text-white/60 hover:border-[#4ecbff]/40 hover:bg-[#4ecbff]/10 hover:text-white/80'
+                ? 'border-[#4ecbff]/60 bg-[#4ecbff]/20 hover:border-[#4ecbff]/80 hover:bg-[#4ecbff]/30'
+                : 'border-white/20 bg-white/5 hover:border-[#4ecbff]/40 hover:bg-[#4ecbff]/10'
             }`}
             title={isCloudTask ? "Remove from Quick Wins" : "Mark as Quick Win"}
           >
-            <Cloud className="mr-2 h-3.5 w-3.5" />
-            {isCloudTask ? 'Quick Win' : 'Quick Win'}
+            <Cloud className={`h-3.5 w-3.5 ${isCloudTask ? 'text-[#4ecbff]' : 'text-white/60'}`} />
           </Button>
           {onMarkDone && (
             <Button
