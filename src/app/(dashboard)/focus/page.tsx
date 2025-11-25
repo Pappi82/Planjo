@@ -274,7 +274,7 @@ export default function FocusPage() {
       </Dialog>
 
       <TaskDetail
-        task={selectedTask}
+        task={selectedTask as any}
         open={!!selectedTask}
         onClose={() => setSelectedTaskId(null)}
         onUpdate={handleUpdateTask}
