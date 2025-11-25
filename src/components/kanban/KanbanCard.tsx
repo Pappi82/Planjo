@@ -63,7 +63,7 @@ export default function KanbanCard({ task, onClick, isDragging, accentColor }: K
     }
   };
 
-  const baseAccent = '#6B7280';
+  const baseAccent = priorityColor || accentColor || '#6B7280';
 
   return (
     <div

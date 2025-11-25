@@ -165,9 +165,6 @@ export default function FocusPage() {
               <h1 className="text-3xl font-bold">Channel your next flow session</h1>
             </div>
           </div>
-          <p className="mt-4 text-white/70">
-            Your urgent tasks are ready for deep focus.
-          </p>
         </div>
 
         {/* Action Buttons */}

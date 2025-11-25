@@ -1197,9 +1197,6 @@ export default function ToolsPage() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-4xl font-bold text-white">Vibe Coder Tools</h1>
-            <p className="mt-2 text-white/60">
-              Curate your perfect dev stack. Click cards for details, tap the circle to activate tools you use.
-            </p>
           </div>
           <Button
             onClick={() => setAddToolDialogOpen(true)}

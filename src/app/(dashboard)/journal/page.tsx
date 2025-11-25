@@ -38,7 +38,6 @@ export default function JournalPage() {
       <PageHero
         label="Journal"
         title="Momentum log"
-        description="Capture what moved, what you felt, and what should happen next. The journal keeps your solo cadence honest."
         meta={
           <div className="space-y-1 text-right sm:text-left">
             <p className="text-xs uppercase tracking-[0.35em] text-white/50">Entries logged</p>

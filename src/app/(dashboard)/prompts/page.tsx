@@ -6,6 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { usePrompts } from '@/hooks/usePrompts';
 import { Prompt } from '@/types';
 
@@ -17,6 +23,7 @@ export default function PromptsPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterFavorites, setFilterFavorites] = useState(false);
+  const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,11 +214,12 @@ export default function PromptsPage() {
             {filteredPrompts.map((prompt) => (
               <div
                 key={String(prompt._id)}
-                className="group relative overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.04] p-6 text-white shadow-[0_20px_40px_rgba(15,23,42,0.45)] transition hover:border-white/25 hover:bg-white/[0.06]"
+                onClick={() => setSelectedPrompt(prompt)}
+                className="group relative overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.04] p-6 text-white shadow-[0_20px_40px_rgba(15,23,42,0.45)] transition hover:border-white/25 hover:bg-white/[0.06] cursor-pointer"
               >
                 <div className="mb-4 flex items-start justify-between gap-2">
                   <h3 className="flex-1 text-lg font-semibold text-white">{prompt.title}</h3>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => handleToggleFavorite(prompt)}
                       className="rounded-lg p-1.5 transition hover:bg-white/10"
@@ -275,6 +283,59 @@ export default function PromptsPage() {
           </div>
         )}
       </div>
+
+      {/* Prompt Detail Dialog */}
+      <Dialog open={!!selectedPrompt} onOpenChange={(open) => !open && setSelectedPrompt(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-[28px] border-white/12 bg-slate-950/95">
+          {selectedPrompt && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-semibold text-white">{selectedPrompt.title}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6 mt-4">
+                <div>
+                  <p className="text-sm text-white/70 whitespace-pre-wrap">{selectedPrompt.content}</p>
+                </div>
+                {selectedPrompt.tags && selectedPrompt.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedPrompt.tags.map((tag, idx) => (
+                      <Badge
+                        key={idx}
+                        variant="outline"
+                        className="border-white/20 bg-white/5 text-xs text-white/70"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-3 pt-4 border-t border-white/10">
+                  <Button
+                    onClick={() => selectedPrompt && handleCopy(selectedPrompt)}
+                    variant="outline"
+                    className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white"
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copy to clipboard
+                  </Button>
+                  <Button
+                    onClick={() => selectedPrompt && handleToggleFavorite(selectedPrompt)}
+                    variant="outline"
+                    className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white"
+                  >
+                    <Star
+                      className="mr-2 h-4 w-4"
+                      fill={selectedPrompt.isFavorite ? '#f9a826' : 'none'}
+                      color={selectedPrompt.isFavorite ? '#f9a826' : '#ffffff88'}
+                    />
+                    {selectedPrompt.isFavorite ? 'Unfavorite' : 'Favorite'}
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

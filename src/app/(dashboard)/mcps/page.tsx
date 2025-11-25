@@ -474,9 +474,6 @@ export default function MCPsPage() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-4xl font-bold text-white">Model Context Protocol Servers</h1>
-            <p className="mt-2 text-white/60">
-              Discover and manage MCP servers to extend AI capabilities. Click cards for details, tap the circle to activate.
-            </p>
           </div>
           <Button
             onClick={() => setAddMCPDialogOpen(true)}
