@@ -106,7 +106,6 @@ export interface ITask extends Document {
   actualHours?: number;
   completedAt?: Date;
   archivedAt?: Date;
-  vibeNotes?: string;
   isCloudTask?: boolean;
   createdAt: Date;
   updatedAt: Date;

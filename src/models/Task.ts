@@ -100,10 +100,6 @@ const TaskSchema = new Schema<ITask>(
     archivedAt: {
       type: Date,
     },
-    vibeNotes: {
-      type: String,
-      default: '',
-    },
     isCloudTask: {
       type: Boolean,
       default: false,

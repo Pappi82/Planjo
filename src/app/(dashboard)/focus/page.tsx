@@ -43,7 +43,6 @@ export default function FocusPage() {
   const { tasks: focusTasks, mutate: refreshFocus } = useFocusTasks(20);
   const { projects } = useProjects();
 
-  const [vibeDialogOpen, setVibeDialogOpen] = useState(false);
   const [addTaskOpen, setAddTaskOpen] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState('');
@@ -53,17 +52,6 @@ export default function FocusPage() {
     acc[project._id.toString()] = project;
     return acc;
   }, {} as Record<string, Project>);
-
-  const launchVibeMode = (taskId: string) => {
-    setVibeDialogOpen(false);
-    play('action');
-    router.push(`/vibe/${taskId}`);
-  };
-
-  const openVibeLauncher = () => {
-    setVibeDialogOpen(true);
-    refreshFocus();
-  };
 
   const handleAddTask = async () => {
     if (!newTaskTitle.trim() || !selectedProjectId) return;
@@ -126,12 +114,12 @@ export default function FocusPage() {
             </div>
           </div>
           <p className="mt-4 text-white/70">
-            Your urgent tasks are ready for deep focus. Launch Vibe Mode to enter a distraction-free environment.
+            Your urgent tasks are ready for deep focus.
           </p>
         </div>
 
         {/* Action Buttons */}
-        <div className="mb-8 flex flex-wrap gap-3">
+        <div className="mb-8">
           <Button
             onClick={() => {
               play('action');
@@ -141,14 +129,6 @@ export default function FocusPage() {
           >
             <Plus className="mr-2 h-4 w-4" />
             Add urgent task
-          </Button>
-          <Button
-            variant="outline"
-            onClick={openVibeLauncher}
-            className="h-12 rounded-full border-white/30 bg-white/5 px-6 text-white/90 hover:bg-white/10"
-          >
-            <FocusIcon className="mr-2 h-4 w-4" />
-            Vibe launcher
           </Button>
         </div>
 
@@ -177,7 +157,6 @@ export default function FocusPage() {
                   key={task._id.toString()}
                   task={task}
                   projectTitle={projectTitle}
-                  onLaunch={() => launchVibeMode(task._id.toString())}
                   onMarkDone={() => handleMarkDone(task._id.toString())}
                 />
               );
@@ -239,31 +218,6 @@ export default function FocusPage() {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Vibe Launcher Dialog */}
-      <Dialog open={vibeDialogOpen} onOpenChange={setVibeDialogOpen}>
-        <DialogContent className="max-w-2xl rounded-[28px] border-white/10 bg-slate-950/85 backdrop-blur-2xl">
-          <DialogHeader>
-            <DialogTitle>Pick a task for Vibe Mode</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {focusTasks.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-white/10 p-8 text-center text-white/60">
-                No open tasks detected. Create one inside a project to unlock Vibe Mode.
-              </div>
-            ) : (
-              focusTasks.map((task) => (
-                <FocusTaskChip
-                  key={task._id.toString()}
-                  task={task}
-                  projectTitle={projectLookup[task.projectId?.toString()]?.title}
-                  onLaunch={() => launchVibeMode(task._id.toString())}
-                />
-              ))
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
@@ -271,12 +225,10 @@ export default function FocusPage() {
 function FocusTaskChip({
   task,
   projectTitle,
-  onLaunch,
   onMarkDone,
 }: {
   task: TaskType;
   projectTitle?: string;
-  onLaunch: () => void;
   onMarkDone?: () => void;
 }) {
   const dueDate = task.dueDate ? new Date(task.dueDate) : null;
@@ -298,32 +250,20 @@ function FocusTaskChip({
             <span style={{ color: priorityColor }}>Priority {task.priority}</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {onMarkDone && (
-            <Button
-              onClick={() => {
-                play('success');
-                onMarkDone();
-              }}
-              variant="ghost"
-              size="sm"
-              className="rounded-full border border-[#38f8c7]/40 bg-[#38f8c7]/10 px-4 text-xs text-white/75 hover:border-[#38f8c7]/60 hover:bg-[#38f8c7]/20 hover:text-white"
-            >
-              <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
-              Done
-            </Button>
-          )}
+        {onMarkDone && (
           <Button
             onClick={() => {
-              play('action');
-              onLaunch();
+              play('success');
+              onMarkDone();
             }}
-            className="self-start rounded-full border border-white/25 bg-white/10 px-4 text-xs text-white hover:bg-white/20 sm:self-auto"
+            variant="ghost"
+            size="sm"
+            className="rounded-full border border-[#38f8c7]/40 bg-[#38f8c7]/10 px-4 text-xs text-white/75 hover:border-[#38f8c7]/60 hover:bg-[#38f8c7]/20 hover:text-white"
           >
-            <FocusIcon className="mr-2 h-3.5 w-3.5" />
-            Launch
+            <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
+            Done
           </Button>
-        </div>
+        )}
       </div>
     </div>
   );

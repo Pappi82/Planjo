@@ -65,7 +65,7 @@ export default function LoginPage() {
               </h1>
               <p className="max-w-xl text-sm text-white/65 md:text-base">
                 Planjo unifies projects, focus rituals, journals, and analytics into one luminous cockpit.
-                Power through deep work sessions with streaks, vibes, and velocity at your fingertips.
+                Power through deep work sessions with streaks and velocity at your fingertips.
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-3">

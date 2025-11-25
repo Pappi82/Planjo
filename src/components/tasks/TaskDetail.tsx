@@ -11,8 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ITask, IKanbanColumn } from '@/types';
 import { TASK_PRIORITIES } from '@/lib/constants';
 import SubtaskList from './SubtaskList';
-import { Trash2, Focus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface TaskDetailProps {
@@ -106,13 +105,6 @@ export default function TaskDetail({
     }
   };
 
-  const handleEnterVibeMode = () => {
-    if (!task?._id) {
-      return;
-    }
-    router.push(`/vibe/${task._id.toString()}`);
-  };
-
   const handleToggleComplete = async () => {
     setLoading(true);
     try {
@@ -174,19 +166,6 @@ export default function TaskDetail({
                 {new Date(task.completedAt).toLocaleDateString()}
               </span>
             )}
-          </div>
-
-          {/* Enter Vibe Mode Button - Centered */}
-          <div className="flex justify-center pt-2 pb-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleEnterVibeMode}
-              className="gap-2"
-            >
-              <Focus className="h-4 w-4" />
-              Enter Vibe Mode
-            </Button>
           </div>
         </DialogHeader>
 
