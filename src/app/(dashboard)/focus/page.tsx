@@ -199,13 +199,13 @@ export default function FocusPage() {
                 typeof task.projectId === 'string'
                   ? task.projectId
                   : task.projectId?.toString?.();
-              const projectTitle = projectId ? projectLookup[projectId]?.title : undefined;
+              const project = projectId ? projectLookup[projectId] : undefined;
 
               return (
                 <FocusTaskChip
                   key={task._id.toString()}
                   task={task}
-                  projectTitle={projectTitle}
+                  project={project}
                   onMarkDone={() => handleMarkDone(task._id.toString())}
                   onRefresh={refreshFocus}
                   onClick={() => setSelectedTaskId(task._id.toString())}
@@ -285,13 +285,13 @@ export default function FocusPage() {
 
 function FocusTaskChip({
   task,
-  projectTitle,
+  project,
   onMarkDone,
   onRefresh,
   onClick,
 }: {
   task: TaskType;
-  projectTitle?: string;
+  project?: Project;
   onMarkDone?: () => void;
   onRefresh?: () => void;
   onClick?: () => void;
@@ -300,6 +300,7 @@ function FocusTaskChip({
   const [isTogglingCloud, setIsTogglingCloud] = useState(false);
   const dueDate = task.dueDate ? new Date(task.dueDate) : null;
   const priorityColor = priorityColors[task.priority] || '#6f9eff';
+  const projectColor = project?.colorTheme || '#6f9eff';
   const { play } = usePlanjoSound();
 
   const handleCloudToggle = async (e: React.MouseEvent) => {
@@ -338,10 +339,11 @@ function FocusTaskChip({
       <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
           <p className="text-sm font-semibold text-white">{task.title}</p>
-          <div className="mt-2 flex flex-wrap gap-3 text-xs text-white/60">
-            <span>{projectTitle || 'Untitled project'}</span>
-            {dueDate && <span>Due {dueDate.toLocaleDateString()}</span>}
-            <span style={{ color: priorityColor }}>Priority {task.priority}</span>
+          <div className="mt-2 flex flex-wrap gap-3 text-xs">
+            <span style={{ color: projectColor }} className="font-medium">
+              {project?.title || 'Untitled project'}
+            </span>
+            {dueDate && <span className="text-white/60">Due {dueDate.toLocaleDateString()}</span>}
           </div>
         </div>
         <div className="flex gap-2">
