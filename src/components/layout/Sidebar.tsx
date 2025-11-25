@@ -15,6 +15,7 @@ import {
   Wrench,
   Blocks,
   Focus,
+  BookmarkPlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ const navigation = [
   { name: 'Projects', href: '/projects', icon: FolderKanban, hint: 'Boards & docs' },
   { name: 'Focus', href: '/focus', icon: Focus, hint: 'Flow session' },
   { name: 'Parking Lot', href: '/parking-lot', icon: Lightbulb, hint: 'Idea stash' },
+  { name: 'Prompts', href: '/prompts', icon: BookmarkPlus, hint: 'Saved prompts' },
   { name: 'Journal', href: '/journal', icon: BookOpen, hint: 'Daily log' },
   { name: 'Analytics', href: '/analytics', icon: BarChart3, hint: 'Momentum' },
   { name: 'Tools', href: '/tools', icon: Wrench, hint: 'Vibe stack' },

@@ -43,7 +43,6 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ProjectForm } from '@/components/projects/ProjectForm';
 import StreakDisplay from '@/components/analytics/StreakDisplay';
-import PromptSaver from '@/components/prompts/PromptSaver';
 import HighPriorityTasks from '@/components/dashboard/HighPriorityTasks';
 import CloudTasks from '@/components/dashboard/CloudTasks';
 import DailyMomentum from '@/components/dashboard/DailyMomentum';
@@ -457,8 +456,6 @@ export default function DashboardPage() {
             <CloudTasks userId={session?.user?.id} />
             <DailyMomentum userId={session?.user?.id} />
           </div>
-
-          <PromptSaver />
 
           <QuickCommandGrid
             actions={quickActions}
