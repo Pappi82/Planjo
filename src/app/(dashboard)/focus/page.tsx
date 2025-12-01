@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useSWRConfig } from 'swr';
 import {
   Plus,
   Focus as FocusIcon,
@@ -28,6 +29,7 @@ import {
 import { useProjects } from '@/hooks/useProjects';
 import { useFocusTasks } from '@/hooks/useFocusTasks';
 import { useColumns } from '@/hooks/useTasks';
+import { CLOUD_TASKS_KEY } from '@/hooks/useCloudTasks';
 import { usePlanjoSound } from '@/components/providers/PlanjoExperienceProvider';
 import { Project, Task as TaskType } from '@/types';
 import TaskDetail from '@/components/tasks/TaskDetail';
@@ -296,6 +298,7 @@ function FocusTaskChip({
   onRefresh?: () => void;
   onClick?: () => void;
 }) {
+  const { mutate } = useSWRConfig();
   const [isCloudTask, setIsCloudTask] = useState(task.isCloudTask || false);
   const [isTogglingCloud, setIsTogglingCloud] = useState(false);
   const dueDate = task.dueDate ? new Date(task.dueDate) : null;
@@ -318,6 +321,8 @@ function FocusTaskChip({
       if (response.ok) {
         setIsCloudTask(!isCloudTask);
         play('action');
+        // Revalidate cloud tasks on dashboard
+        mutate(CLOUD_TASKS_KEY);
         onRefresh?.();
       }
     } catch (error) {

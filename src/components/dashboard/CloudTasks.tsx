@@ -1,36 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Cloud, ChevronRight } from 'lucide-react';
-import { Task, Project } from '@/types';
 import { useRouter } from 'next/navigation';
+import { useCloudTasks } from '@/hooks/useCloudTasks';
 
-interface CloudTasksProps {
-  userId?: string;
-}
-
-export default function CloudTasks({ userId }: CloudTasksProps) {
+export default function CloudTasks() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<(Task & { project?: Project })[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchCloudTasks() {
-      try {
-        const response = await fetch('/api/tasks?isCloudTask=true&limit=10');
-        if (response.ok) {
-          const data = await response.json();
-          setTasks(data.tasks || []);
-        }
-      } catch (error) {
-        console.error('Failed to fetch cloud tasks:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchCloudTasks();
-  }, [userId]);
+  const { tasks, isLoading: loading } = useCloudTasks();
 
   return (
     <div className="group relative overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.04] p-6 text-white shadow-[0_18px_40px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:border-white/40 hover:bg-white/[0.08]">

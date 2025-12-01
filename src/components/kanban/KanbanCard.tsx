@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
 import { TASK_PRIORITIES } from '@/lib/constants';
 import { useState } from 'react';
+import { useSWRConfig } from 'swr';
+import { CLOUD_TASKS_KEY } from '@/hooks/useCloudTasks';
 
 interface KanbanCardProps {
   task: ITask;
@@ -20,6 +22,7 @@ interface KanbanCardProps {
 
 export default function KanbanCard({ task, onClick, isDragging, accentColor }: KanbanCardProps) {
   const router = useRouter();
+  const { mutate } = useSWRConfig();
   const [isCloudTask, setIsCloudTask] = useState(task.isCloudTask || false);
   const [isTogglingCloud, setIsTogglingCloud] = useState(false);
 
@@ -55,6 +58,8 @@ export default function KanbanCard({ task, onClick, isDragging, accentColor }: K
 
       if (response.ok) {
         setIsCloudTask(!isCloudTask);
+        // Revalidate cloud tasks on dashboard
+        mutate(CLOUD_TASKS_KEY);
       }
     } catch (error) {
       console.error('Failed to toggle cloud status:', error);
