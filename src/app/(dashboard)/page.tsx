@@ -444,7 +444,7 @@ export default function DashboardPage() {
 
           <div className="grid gap-6 lg:grid-cols-3">
             <HighPriorityTasks userId={session?.user?.id} />
-            <CloudTasks userId={session?.user?.id} />
+            <CloudTasks />
             <DailyMomentum userId={session?.user?.id} />
           </div>
 
