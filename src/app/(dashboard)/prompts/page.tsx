@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BookmarkPlus, Copy, Star, Trash2, Plus, X, Search } from 'lucide-react';
+import { BookmarkPlus, Copy, Star, Trash2, Plus, X, Search, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,6 +24,8 @@ export default function PromptsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterFavorites, setFilterFavorites] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ title: '', content: '', tags: '' });
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +80,7 @@ export default function PromptsPage() {
 
   const handleDelete = async (promptId: string) => {
     if (!confirm('Are you sure you want to delete this prompt?')) return;
-    
+
     try {
       await fetch(`/api/prompts/${promptId}`, {
         method: 'DELETE',
@@ -86,6 +88,58 @@ export default function PromptsPage() {
       mutate();
     } catch (error) {
       console.error('Error deleting prompt:', error);
+    }
+  };
+
+  const handleStartEdit = () => {
+    if (!selectedPrompt) return;
+    setEditData({
+      title: selectedPrompt.title,
+      content: selectedPrompt.content,
+      tags: selectedPrompt.tags?.join(', ') || '',
+    });
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditData({ title: '', content: '', tags: '' });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedPrompt || !editData.title.trim() || !editData.content.trim()) return;
+
+    setIsSaving(true);
+    try {
+      const response = await fetch(`/api/prompts/${String(selectedPrompt._id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editData.title,
+          content: editData.content,
+          tags: editData.tags.split(',').map((t) => t.trim()).filter(Boolean),
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedPrompt(data.prompt);
+        setIsEditing(false);
+        setEditData({ title: '', content: '', tags: '' });
+        mutate();
+      }
+    } catch (error) {
+      console.error('Error updating prompt:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCloseDialog = (open: boolean) => {
+    if (!open) {
+      setSelectedPrompt(null);
+      setIsEditing(false);
+      setEditData({ title: '', content: '', tags: '' });
     }
   };
 
@@ -285,51 +339,113 @@ export default function PromptsPage() {
       </div>
 
       {/* Prompt Detail Dialog */}
-      <Dialog open={!!selectedPrompt} onOpenChange={(open) => !open && setSelectedPrompt(null)}>
+      <Dialog open={!!selectedPrompt} onOpenChange={handleCloseDialog}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-[28px] border-white/12 bg-slate-950/95">
           {selectedPrompt && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-2xl font-semibold text-white">{selectedPrompt.title}</DialogTitle>
+                {isEditing ? (
+                  <Input
+                    value={editData.title}
+                    onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                    className="text-2xl font-semibold border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                    placeholder="Prompt title..."
+                    disabled={isSaving}
+                  />
+                ) : (
+                  <DialogTitle className="text-2xl font-semibold text-white">{selectedPrompt.title}</DialogTitle>
+                )}
               </DialogHeader>
               <div className="space-y-6 mt-4">
                 <div>
-                  <p className="text-sm text-white/70 whitespace-pre-wrap">{selectedPrompt.content}</p>
+                  {isEditing ? (
+                    <Textarea
+                      value={editData.content}
+                      onChange={(e) => setEditData({ ...editData, content: e.target.value })}
+                      className="min-h-[200px] border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                      placeholder="Prompt content..."
+                      disabled={isSaving}
+                    />
+                  ) : (
+                    <p className="text-sm text-white/70 whitespace-pre-wrap">{selectedPrompt.content}</p>
+                  )}
                 </div>
-                {selectedPrompt.tags && selectedPrompt.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {selectedPrompt.tags.map((tag, idx) => (
-                      <Badge
-                        key={idx}
-                        variant="outline"
-                        className="border-white/20 bg-white/5 text-xs text-white/70"
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
+                {isEditing ? (
+                  <div>
+                    <Input
+                      value={editData.tags}
+                      onChange={(e) => setEditData({ ...editData, tags: e.target.value })}
+                      className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                      placeholder="Tags (comma-separated)..."
+                      disabled={isSaving}
+                    />
                   </div>
+                ) : (
+                  selectedPrompt.tags && selectedPrompt.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedPrompt.tags.map((tag, idx) => (
+                        <Badge
+                          key={idx}
+                          variant="outline"
+                          className="border-white/20 bg-white/5 text-xs text-white/70"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )
                 )}
                 <div className="flex gap-3 pt-4 border-t border-white/10">
-                  <Button
-                    onClick={() => selectedPrompt && handleCopy(selectedPrompt)}
-                    variant="outline"
-                    className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white"
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy to clipboard
-                  </Button>
-                  <Button
-                    onClick={() => selectedPrompt && handleToggleFavorite(selectedPrompt)}
-                    variant="outline"
-                    className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white"
-                  >
-                    <Star
-                      className="mr-2 h-4 w-4"
-                      fill={selectedPrompt.isFavorite ? '#f9a826' : 'none'}
-                      color={selectedPrompt.isFavorite ? '#f9a826' : '#ffffff88'}
-                    />
-                    {selectedPrompt.isFavorite ? 'Unfavorite' : 'Favorite'}
-                  </Button>
+                  {isEditing ? (
+                    <>
+                      <Button
+                        onClick={handleSaveEdit}
+                        disabled={isSaving || !editData.title.trim() || !editData.content.trim()}
+                        className="rounded-full bg-[#6f9eff] text-white hover:bg-[#5a8eef]"
+                      >
+                        {isSaving ? 'Saving...' : 'Save Changes'}
+                      </Button>
+                      <Button
+                        onClick={handleCancelEdit}
+                        variant="outline"
+                        disabled={isSaving}
+                        className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white"
+                      >
+                        Cancel
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        onClick={handleStartEdit}
+                        variant="outline"
+                        className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white"
+                      >
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => selectedPrompt && handleCopy(selectedPrompt)}
+                        variant="outline"
+                        className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white"
+                      >
+                        <Copy className="mr-2 h-4 w-4" />
+                        Copy to clipboard
+                      </Button>
+                      <Button
+                        onClick={() => selectedPrompt && handleToggleFavorite(selectedPrompt)}
+                        variant="outline"
+                        className="rounded-full border-white/25 bg-white/5 text-white/80 hover:text-white"
+                      >
+                        <Star
+                          className="mr-2 h-4 w-4"
+                          fill={selectedPrompt.isFavorite ? '#f9a826' : 'none'}
+                          color={selectedPrompt.isFavorite ? '#f9a826' : '#ffffff88'}
+                        />
+                        {selectedPrompt.isFavorite ? 'Unfavorite' : 'Favorite'}
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </>
