@@ -46,6 +46,7 @@ import StreakDisplay from '@/components/analytics/StreakDisplay';
 import HighPriorityTasks from '@/components/dashboard/HighPriorityTasks';
 import CloudTasks from '@/components/dashboard/CloudTasks';
 import DailyMomentum from '@/components/dashboard/DailyMomentum';
+import DashboardNotes from '@/components/dashboard/DashboardNotes';
 import { useProjects } from '@/hooks/useProjects';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useRecentActivity } from '@/hooks/useRecentActivity';
@@ -442,10 +443,11 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-3 xl:grid-cols-4">
             <HighPriorityTasks userId={session?.user?.id} />
             <CloudTasks />
             <DailyMomentum userId={session?.user?.id} />
+            <DashboardNotes userId={session?.user?.id} />
           </div>
 
           <QuickCommandGrid

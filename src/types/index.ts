@@ -230,6 +230,18 @@ export interface IPrompt extends Document {
 }
 
 // ============================================================================
+// NOTE
+// ============================================================================
+
+export interface INote extends Document {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ============================================================================
 // CLIENT-SIDE TYPES (without Mongoose Document)
 // ============================================================================
 
@@ -245,6 +257,7 @@ export type DocumentType = Omit<IDocument, keyof Omit<Document, '_id'>>;
 export type JournalEntry = Omit<IJournalEntry, keyof Omit<Document, '_id'>>;
 export type ActivityLog = Omit<IActivityLog, keyof Omit<Document, '_id'>> & { _id?: string };
 export type Prompt = Omit<IPrompt, keyof Omit<Document, '_id'>>;
+export type Note = Omit<INote, keyof Omit<Document, '_id'>>;
 
 export interface AnalyticsSnapshot {
   streak: {
