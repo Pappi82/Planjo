@@ -1,9 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { StickyNote, Plus, X, Loader2 } from 'lucide-react';
+import { StickyNote, Plus, X, Loader2, Copy, Pencil, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Note } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -17,6 +23,11 @@ export default function DashboardNotes({ userId }: DashboardNotesProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [newNoteContent, setNewNoteContent] = useState('');
   const [showInput, setShowInput] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Fetch notes on mount
   useEffect(() => {
@@ -60,7 +71,10 @@ export default function DashboardNotes({ userId }: DashboardNotesProps) {
     }
   };
 
-  const handleDeleteNote = async (noteId: string) => {
+  const handleDeleteNote = async (noteId: string, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
     try {
       const response = await fetch(`/api/notes/${noteId}`, {
         method: 'DELETE',
@@ -68,9 +82,64 @@ export default function DashboardNotes({ userId }: DashboardNotesProps) {
 
       if (response.ok) {
         setNotes(notes.filter((note) => note._id.toString() !== noteId));
+        if (selectedNote && selectedNote._id.toString() === noteId) {
+          setSelectedNote(null);
+        }
       }
     } catch (error) {
       console.error('Failed to delete note:', error);
+    }
+  };
+
+  const handleOpenNote = (note: Note) => {
+    setSelectedNote(note);
+    setEditContent(note.content);
+    setIsEditing(false);
+    setCopied(false);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedNote(null);
+    setIsEditing(false);
+    setEditContent('');
+    setCopied(false);
+  };
+
+  const handleEditNote = async () => {
+    if (!selectedNote || !editContent.trim()) return;
+
+    setIsSaving(true);
+    try {
+      const response = await fetch(`/api/notes/${selectedNote._id.toString()}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: editContent }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setNotes(notes.map((note) =>
+          note._id.toString() === selectedNote._id.toString() ? data.note : note
+        ));
+        setSelectedNote(data.note);
+        setIsEditing(false);
+      }
+    } catch (error) {
+      console.error('Failed to update note:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCopyNote = async () => {
+    if (!selectedNote) return;
+
+    try {
+      await navigator.clipboard.writeText(selectedNote.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy note:', error);
     }
   };
 
@@ -164,16 +233,17 @@ export default function DashboardNotes({ userId }: DashboardNotesProps) {
                 {notes.map((note) => (
                   <div
                     key={note._id.toString()}
-                    className="group/note relative rounded-xl border border-white/10 bg-white/[0.03] p-3 transition hover:border-[#8c6ff7]/30 hover:bg-[#8c6ff7]/5"
+                    onClick={() => handleOpenNote(note)}
+                    className="group/note relative cursor-pointer rounded-xl border border-white/10 bg-white/[0.03] p-3 transition hover:border-[#8c6ff7]/30 hover:bg-[#8c6ff7]/5"
                   >
                     <button
-                      onClick={() => handleDeleteNote(note._id.toString())}
-                      className="absolute right-2 top-2 rounded-lg p-1 opacity-0 transition hover:bg-red-500/20 group-hover/note:opacity-100"
+                      onClick={(e) => handleDeleteNote(note._id.toString(), e)}
+                      className="absolute right-2 top-2 z-10 rounded-lg p-1 opacity-0 transition hover:bg-red-500/20 group-hover/note:opacity-100"
                       title="Delete note"
                     >
                       <X className="h-3.5 w-3.5 text-red-400" />
                     </button>
-                    <p className="pr-8 text-sm text-white">{note.content}</p>
+                    <p className="line-clamp-2 pr-8 text-sm text-white">{note.content}</p>
                     <p className="mt-2 text-xs text-white/50">
                       {formatDistanceToNow(new Date(note.createdAt), { addSuffix: true })}
                     </p>
@@ -184,6 +254,111 @@ export default function DashboardNotes({ userId }: DashboardNotesProps) {
           </div>
         )}
       </div>
+
+      <Dialog open={!!selectedNote} onOpenChange={(open) => !open && handleCloseModal()}>
+        <DialogContent className="max-w-2xl rounded-[24px] border-white/10 bg-slate-950/80 backdrop-blur-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-white">Note</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {isEditing ? (
+              <Textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="min-h-[200px] resize-none border-white/10 bg-white/5 text-sm text-white placeholder:text-white/40"
+                autoFocus
+              />
+            ) : (
+              <div className="max-h-[400px] overflow-y-auto rounded-xl border border-white/10 bg-white/5 p-4">
+                <p className="whitespace-pre-wrap text-sm text-white">{selectedNote?.content}</p>
+              </div>
+            )}
+
+            {selectedNote && (
+              <div className="flex items-center justify-between border-t border-white/10 pt-4">
+                <p className="text-xs text-white/50">
+                  Created {formatDistanceToNow(new Date(selectedNote.createdAt), { addSuffix: true })}
+                </p>
+                <div className="flex gap-2">
+                  {isEditing ? (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setEditContent(selectedNote.content);
+                        }}
+                        disabled={isSaving}
+                        className="text-white/70 hover:text-white"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleEditNote}
+                        disabled={isSaving || !editContent.trim()}
+                        className="bg-[#8c6ff7] hover:bg-[#8c6ff7]/80"
+                      >
+                        {isSaving ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          'Save Changes'
+                        )}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCopyNote}
+                        className="text-white/70 hover:text-white"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="mr-2 h-4 w-4" />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="mr-2 h-4 w-4" />
+                            Copy
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsEditing(true)}
+                        className="text-white/70 hover:text-white"
+                      >
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          handleDeleteNote(selectedNote._id.toString());
+                        }}
+                        className="text-red-400 hover:bg-red-500/20 hover:text-red-300"
+                      >
+                        <X className="mr-2 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
