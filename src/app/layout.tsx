@@ -1,19 +1,36 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { PlanjoExperienceProvider } from "@/components/providers/PlanjoExperienceProvider";
 
-const planjoSans = Space_Grotesk({
+// Using local font definitions as fallback for environments that can't reach Google Fonts
+// In production with Google Fonts access, you can switch back to:
+// import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
+const planjoSans = localFont({
+  src: [
+    {
+      path: "../../node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-400-normal.woff2",
+      weight: "400",
+      style: "normal",
+    },
+  ],
   variable: "--font-planjo-sans",
-  subsets: ["latin"],
   display: "swap",
+  fallback: ["system-ui", "sans-serif"],
 });
 
-const planjoMono = JetBrains_Mono({
+const planjoMono = localFont({
+  src: [
+    {
+      path: "../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2",
+      weight: "400",
+      style: "normal",
+    },
+  ],
   variable: "--font-planjo-mono",
-  subsets: ["latin"],
   display: "swap",
+  fallback: ["ui-monospace", "monospace"],
 });
 
 export const metadata: Metadata = {
