@@ -205,6 +205,44 @@ solo-dev-pm/
 - Momentum Tracker (Analytics)
 - Polish & Deployment
 
+## 💾 Backup Strategy
+
+To prevent data loss, follow these backup practices:
+
+### MongoDB Atlas (Recommended)
+If using MongoDB Atlas, backups are handled automatically:
+- **M10+ clusters**: Continuous backup with point-in-time recovery
+- **M2/M5 clusters**: Daily snapshots (retained for 2 days on free tier)
+
+To enable/verify: Atlas Dashboard → Your Cluster → Backup
+
+### Self-Hosted MongoDB
+For self-hosted MongoDB, use `mongodump` regularly:
+
+```bash
+# Backup entire database
+mongodump --uri="your_mongodb_uri" --out=/path/to/backup/$(date +%Y%m%d)
+
+# Restore from backup
+mongorestore --uri="your_mongodb_uri" /path/to/backup/20241212
+```
+
+### Recommended Backup Schedule
+- **Daily**: Automated backup of MongoDB database
+- **Before deployments**: Manual backup via mongodump
+- **Weekly**: Verify backups can be restored
+
+### Critical Data to Protect
+1. **MongoDB database** - All user data, projects, tasks, vault credentials
+2. **ENCRYPTION_KEY** - Store securely; if lost, encrypted vault data is unrecoverable
+3. **Environment variables** - Keep a secure copy of `.env` settings
+
+### Vault Data Warning
+The `ENCRYPTION_KEY` is critical for vault/credentials data:
+- **Never change** the key after storing credentials
+- **Keep a secure backup** of the key separately
+- If the key is lost, encrypted data **cannot be recovered**
+
 ## 🧪 Testing
 
 To test the application:

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import VaultFile from '@/models/VaultFile';
 import { encrypt, decrypt } from '@/lib/encryption';
+import { createVaultFileSchema, validateRequest } from '@/lib/validations';
 
 // GET all vault files for a project
 export async function GET(request: NextRequest) {
@@ -54,15 +55,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { projectId, filename, content, mimeType, notes } =
-      await request.json();
+    const body = await request.json();
 
-    if (!projectId || !filename || !content) {
+    // Validation with Zod
+    const validation = validateRequest(createVaultFileSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Required fields missing' },
+        { error: validation.error },
         { status: 400 }
       );
     }
+
+    const { projectId, filename, content, mimeType, notes } = validation.data;
 
     await dbConnect();
 

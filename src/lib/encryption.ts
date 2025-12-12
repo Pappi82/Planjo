@@ -1,9 +1,13 @@
 import CryptoJS from 'crypto-js';
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 
 if (!ENCRYPTION_KEY) {
-  console.warn('ENCRYPTION_KEY is not defined in environment variables');
+  throw new Error(
+    'ENCRYPTION_KEY is not defined in environment variables. ' +
+    'Please set ENCRYPTION_KEY in your .env file to enable vault encryption. ' +
+    'You can generate one with: openssl rand -base64 32'
+  );
 }
 
 /**

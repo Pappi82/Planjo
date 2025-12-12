@@ -2,25 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
+import { registerSchema, validateRequest } from '@/lib/validations';
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, name } = await req.json();
+    const body = await req.json();
 
-    // Validation
-    if (!email || !password || !name) {
+    // Validation with Zod
+    const validation = validateRequest(registerSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Email, password, and name are required' },
+        { error: validation.error },
         { status: 400 }
       );
     }
 
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: 'Password must be at least 6 characters' },
-        { status: 400 }
-      );
-    }
+    const { email, password, name } = validation.data;
 
     await dbConnect();
 
@@ -55,10 +52,10 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to create user' },
+      { error: 'Failed to create user' },
       { status: 500 }
     );
   }

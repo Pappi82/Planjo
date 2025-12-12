@@ -7,6 +7,7 @@ import KanbanColumn from '@/models/KanbanColumn';
 import ActivityLog from '@/models/ActivityLog';
 import Task from '@/models/Task';
 import { DEFAULT_KANBAN_COLUMNS } from '@/lib/constants';
+import { createProjectSchema, validateRequest } from '@/lib/validations';
 
 // GET /api/projects - Get all projects for the authenticated user
 export async function GET(req: NextRequest) {
@@ -163,11 +164,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, description, status, colorTheme, techStack, repoUrl, startDate, targetDate } = body;
 
-    if (!title) {
-      return NextResponse.json({ error: 'Project title is required' }, { status: 400 });
+    // Validation with Zod
+    const validation = validateRequest(createProjectSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
+
+    const { title, description, status, colorTheme, techStack, repoUrl, startDate, targetDate } = validation.data;
 
     await dbConnect();
 
@@ -206,10 +210,10 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ project }, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Create project error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to create project' },
+      { error: 'Failed to create project' },
       { status: 500 }
     );
   }

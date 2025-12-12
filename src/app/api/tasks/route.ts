@@ -5,6 +5,7 @@ import dbConnect from '@/lib/db';
 import Task from '@/models/Task';
 import ActivityLog from '@/models/ActivityLog';
 import KanbanColumn from '@/models/KanbanColumn';
+import { createTaskSchema, validateRequest } from '@/lib/validations';
 
 // GET all tasks for a project or filtered tasks
 export async function GET(request: NextRequest) {
@@ -145,6 +146,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+
+    // Validation with Zod
+    const validation = validateRequest(createTaskSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error },
+        { status: 400 }
+      );
+    }
+
     const {
       projectId,
       title,
@@ -155,14 +166,7 @@ export async function POST(request: NextRequest) {
       dueDate,
       estimatedHours,
       parentTaskId,
-    } = body;
-
-    if (!projectId || !title) {
-      return NextResponse.json(
-        { error: 'Project ID and title are required' },
-        { status: 400 }
-      );
-    }
+    } = validation.data;
 
     await dbConnect();
 
