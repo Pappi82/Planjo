@@ -81,7 +81,7 @@ export default function KanbanColumn({
   };
 
   return (
-    <div className="flex h-full w-80 flex-shrink-0 flex-col">
+    <div className="flex h-full min-w-0 flex-1 flex-col">
       <div
         ref={setNodeRef}
         data-column-id={column._id.toString()}

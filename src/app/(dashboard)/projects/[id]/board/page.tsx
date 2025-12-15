@@ -198,7 +198,7 @@ export default function BoardPage() {
   const activeColumn = columns.length;
 
   return (
-    <div className="flex h-full flex-col space-y-10">
+    <div className="flex h-full flex-col space-y-4">
       <PageHero
         label="Flow board"
         title={project?.title || 'Active tasks'}
