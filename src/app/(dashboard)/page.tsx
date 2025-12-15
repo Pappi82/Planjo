@@ -53,9 +53,9 @@ import { useRecentActivity } from '@/hooks/useRecentActivity';
 import { useFocusTasks } from '@/hooks/useFocusTasks';
 import { usePlanjoSound } from '@/components/providers/PlanjoExperienceProvider';
 import { Project, ProjectDashboardStat, Task as TaskType, ActivityLog } from '@/types';
-import { PROJECT_STATUSES, MOOD_OPTIONS_ARRAY } from '@/lib/constants';
+import { PROJECT_STATUSES, MOOD_OPTIONS_ARRAY, TASK_PRIORITIES } from '@/lib/constants';
 
-type QuickActionKey = 'project' | 'idea' | 'journal' | 'momentum';
+type QuickActionKey = 'project' | 'idea' | 'journal' | 'momentum' | 'task';
 
 const activityMeta: Record<
   string,
@@ -76,12 +76,12 @@ const priorityColors: Record<string, string> = {
   low: '#38f8c7',
 };
 
-const commandAccents: Record<QuickActionKey | 'analytics', string> = {
+const commandAccents: Record<QuickActionKey, string> = {
   project: '#6f9eff',
   idea: '#ff5c87',
   journal: '#4ecbff',
   momentum: '#38f8c7',
-  analytics: '#f9a826',
+  task: '#f9a826',
 };
 
 export default function DashboardPage() {
@@ -99,8 +99,10 @@ export default function DashboardPage() {
     content: '',
     mood: MOOD_OPTIONS_ARRAY[1]?.value || 'good',
   });
+  const [taskForm, setTaskForm] = useState({ title: '', projectId: '', priority: 'medium' });
   const [isSavingIdea, setIsSavingIdea] = useState(false);
   const [isSavingJournal, setIsSavingJournal] = useState(false);
+  const [isSavingTask, setIsSavingTask] = useState(false);
 
   const statsMap = useMemo(() => {
     const map: Record<string, ProjectDashboardStat> = {};
@@ -150,6 +152,7 @@ export default function DashboardPage() {
 
   const quickActions: { key: QuickActionKey; label: string; icon: LucideIcon }[] = [
     { key: 'project', label: 'New project', icon: FolderKanban },
+    { key: 'task', label: 'New task', icon: Plus },
     { key: 'idea', label: 'Add idea', icon: Lightbulb },
     { key: 'journal', label: 'Log journal', icon: BookOpen },
     { key: 'momentum', label: 'Momentum pulse', icon: BarChart3 },
@@ -234,6 +237,35 @@ export default function DashboardPage() {
       alert('Unable to log journal entry right now.');
     } finally {
       setIsSavingJournal(false);
+    }
+  };
+
+  const handleCreateTask = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!taskForm.title.trim() || !taskForm.projectId) return;
+    setIsSavingTask(true);
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: taskForm.projectId,
+          title: taskForm.title,
+          priority: taskForm.priority,
+          status: 'To Do',
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to create task');
+      }
+      setTaskForm({ title: '', projectId: '', priority: 'medium' });
+      await refreshActivity();
+      closeActionDialog();
+    } catch (error) {
+      console.error(error);
+      alert('Unable to create task right now.');
+    } finally {
+      setIsSavingTask(false);
     }
   };
 
@@ -357,6 +389,77 @@ export default function DashboardPage() {
       );
     }
 
+    if (actionDialog === 'task') {
+      return (
+        <>
+          <DialogHeader>
+            <DialogTitle>Create task</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateTask} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="task-title">Title *</Label>
+              <Input
+                id="task-title"
+                value={taskForm.title}
+                onChange={(event) =>
+                  setTaskForm((prev) => ({ ...prev, title: event.target.value }))
+                }
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Project *</Label>
+              <Select
+                value={taskForm.projectId}
+                onValueChange={(value) =>
+                  setTaskForm((prev) => ({ ...prev, projectId: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((project) => (
+                    <SelectItem key={project._id.toString()} value={project._id.toString()}>
+                      {project.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Priority</Label>
+              <Select
+                value={taskForm.priority}
+                onValueChange={(value) =>
+                  setTaskForm((prev) => ({ ...prev, priority: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TASK_PRIORITIES.map((priority) => (
+                    <SelectItem key={priority.value} value={priority.value}>
+                      {priority.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={closeActionDialog} disabled={isSavingTask}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSavingTask || !taskForm.projectId}>
+                {isSavingTask ? 'Creating...' : 'Create task'}
+              </Button>
+            </div>
+          </form>
+        </>
+      );
+    }
+
     if (actionDialog === 'momentum') {
       return (
         <>
@@ -456,7 +559,6 @@ export default function DashboardPage() {
               play('action');
               setActionDialog(key);
             }}
-            onAnalytics={() => router.push('/analytics')}
           />
         </div>
       </section>
@@ -552,11 +654,9 @@ function OrbitMetric({
 function QuickCommandGrid({
   actions,
   onSelect,
-  onAnalytics,
 }: {
   actions: { key: QuickActionKey; label: string; icon: LucideIcon }[];
   onSelect: (key: QuickActionKey) => void;
-  onAnalytics: () => void;
 }) {
   return (
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
@@ -591,31 +691,6 @@ function QuickCommandGrid({
           </button>
         );
       })}
-      <button
-        onClick={onAnalytics}
-        className="group relative overflow-hidden rounded-[20px] border border-white/12 bg-white/[0.05] px-5 py-4 text-left text-white shadow-[0_18px_36px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:border-white/40 hover:bg-white/[0.08]"
-      >
-        <div
-          className="pointer-events-none absolute inset-0 opacity-50 transition-opacity duration-500 group-hover:opacity-90"
-          style={{ background: `linear-gradient(135deg, ${commandAccents.analytics}22 0%, transparent 65%)` }}
-        />
-        <div className="relative z-10 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span
-              className="flex h-10 w-10 items-center justify-center rounded-2xl border"
-              style={{
-                borderColor: `${commandAccents.analytics}55`,
-                backgroundColor: `${commandAccents.analytics}1a`,
-                color: commandAccents.analytics,
-              }}
-            >
-              <BarChart3 className="h-4 w-4" />
-            </span>
-            <span className="text-sm font-medium">Deep analytics</span>
-          </div>
-          <span className="text-sm text-white/50">↗</span>
-        </div>
-      </button>
     </div>
   );
 }
