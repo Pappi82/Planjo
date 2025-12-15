@@ -82,6 +82,7 @@ export const DEFAULT_KANBAN_COLUMNS = [
   { name: 'In Progress', order: 1 },
   { name: 'In Review', order: 2 },
   { name: 'Done', order: 3 },
+  { name: 'Version 2', order: 4 },
 ];
 
 export const CREDENTIAL_CATEGORIES = {
