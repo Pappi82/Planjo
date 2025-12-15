@@ -1,17 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Plus, CheckCircle, ArrowLeft, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useProjects } from '@/hooks/useProjects';
 import { TASK_PRIORITIES } from '@/lib/constants';
 
@@ -154,42 +147,54 @@ export function MobileTaskView() {
             />
           </div>
 
-          <div className="space-y-2 overflow-visible">
-            <Label className="text-white/80">Project *</Label>
-            <Select
-              value={taskForm.projectId}
-              onValueChange={(value) => setTaskForm((prev) => ({ ...prev, projectId: value }))}
-            >
-              <SelectTrigger className="h-14 w-full rounded-xl border-white/20 bg-white/5 text-white">
-                <SelectValue placeholder={projectsLoading ? 'Loading...' : 'Select project'} />
-              </SelectTrigger>
-              <SelectContent position="popper" sideOffset={4} className="z-[100]">
+          <div className="space-y-2">
+            <Label htmlFor="project-select" className="text-white/80">Project *</Label>
+            <div className="relative">
+              <select
+                id="project-select"
+                value={taskForm.projectId}
+                onChange={(e) => setTaskForm((prev) => ({ ...prev, projectId: e.target.value }))}
+                required
+                className="h-14 w-full appearance-none rounded-xl border border-white/20 bg-white/5 px-4 pr-10 text-white text-base focus:outline-none focus:ring-2 focus:ring-white/30"
+              >
+                <option value="" disabled className="bg-[#0a0b14] text-white/50">
+                  {projectsLoading ? 'Loading...' : 'Select project'}
+                </option>
                 {projects.map((project) => (
-                  <SelectItem key={project._id.toString()} value={project._id.toString()}>
+                  <option
+                    key={project._id.toString()}
+                    value={project._id.toString()}
+                    className="bg-[#0a0b14] text-white"
+                  >
                     {project.title}
-                  </SelectItem>
+                  </option>
                 ))}
-              </SelectContent>
-            </Select>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/50" />
+            </div>
           </div>
 
-          <div className="space-y-2 overflow-visible">
-            <Label className="text-white/80">Priority</Label>
-            <Select
-              value={taskForm.priority}
-              onValueChange={(value) => setTaskForm((prev) => ({ ...prev, priority: value }))}
-            >
-              <SelectTrigger className="h-14 w-full rounded-xl border-white/20 bg-white/5 text-white">
-                <SelectValue placeholder="Select priority" />
-              </SelectTrigger>
-              <SelectContent position="popper" sideOffset={4} className="z-[100]">
+          <div className="space-y-2">
+            <Label htmlFor="priority-select" className="text-white/80">Priority</Label>
+            <div className="relative">
+              <select
+                id="priority-select"
+                value={taskForm.priority}
+                onChange={(e) => setTaskForm((prev) => ({ ...prev, priority: e.target.value }))}
+                className="h-14 w-full appearance-none rounded-xl border border-white/20 bg-white/5 px-4 pr-10 text-white text-base focus:outline-none focus:ring-2 focus:ring-white/30"
+              >
                 {TASK_PRIORITIES.map((priority) => (
-                  <SelectItem key={priority.value} value={priority.value}>
+                  <option
+                    key={priority.value}
+                    value={priority.value}
+                    className="bg-[#0a0b14] text-white"
+                  >
                     {priority.label}
-                  </SelectItem>
+                  </option>
                 ))}
-              </SelectContent>
-            </Select>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/50" />
+            </div>
           </div>
 
           <div className="flex flex-col gap-3 pt-4">
