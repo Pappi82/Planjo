@@ -121,11 +121,11 @@ export function MobileTaskView() {
 
   // Form view
   return (
-    <div className="flex min-h-screen flex-col bg-[#02030a] px-6 py-8">
-      <div className="pointer-events-none absolute inset-0">
+    <div className="relative flex min-h-screen flex-col bg-[#02030a] px-6 py-8 overflow-visible">
+      <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute -top-28 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-[rgba(108,111,247,0.18)] blur-[160px]" />
       </div>
-      <div className="relative z-10 flex flex-col gap-6">
+      <div className="relative z-10 flex flex-col gap-6 overflow-visible">
         <div className="flex items-center gap-3">
           <Button
             onClick={() => setViewState('button')}
@@ -141,7 +141,7 @@ export function MobileTaskView() {
           </div>
         </div>
 
-        <form onSubmit={handleCreateTask} className="space-y-5">
+        <form onSubmit={handleCreateTask} className="space-y-5 overflow-visible">
           <div className="space-y-2">
             <Label htmlFor="task-title" className="text-white/80">Title *</Label>
             <Input
@@ -154,16 +154,16 @@ export function MobileTaskView() {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 overflow-visible">
             <Label className="text-white/80">Project *</Label>
             <Select
               value={taskForm.projectId}
               onValueChange={(value) => setTaskForm((prev) => ({ ...prev, projectId: value }))}
             >
-              <SelectTrigger className="h-14 rounded-xl border-white/20 bg-white/5 text-white">
+              <SelectTrigger className="h-14 w-full rounded-xl border-white/20 bg-white/5 text-white">
                 <SelectValue placeholder={projectsLoading ? 'Loading...' : 'Select project'} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" sideOffset={4} className="z-[100]">
                 {projects.map((project) => (
                   <SelectItem key={project._id.toString()} value={project._id.toString()}>
                     {project.title}
@@ -173,16 +173,16 @@ export function MobileTaskView() {
             </Select>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 overflow-visible">
             <Label className="text-white/80">Priority</Label>
             <Select
               value={taskForm.priority}
               onValueChange={(value) => setTaskForm((prev) => ({ ...prev, priority: value }))}
             >
-              <SelectTrigger className="h-14 rounded-xl border-white/20 bg-white/5 text-white">
+              <SelectTrigger className="h-14 w-full rounded-xl border-white/20 bg-white/5 text-white">
                 <SelectValue placeholder="Select priority" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" sideOffset={4} className="z-[100]">
                 {TASK_PRIORITIES.map((priority) => (
                   <SelectItem key={priority.value} value={priority.value}>
                     {priority.label}
