@@ -153,7 +153,11 @@ export default function KanbanColumn({
 
         <div
           data-scrollable="true"
-          className="relative mt-6 flex flex-1 flex-col gap-4 overflow-y-auto px-1 pt-1 pb-2 min-h-0"
+          className="relative mt-6 flex flex-1 flex-col gap-4 overflow-y-auto px-1 pt-1 pb-8 min-h-0 scrollbar-hide"
+          style={{
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
         >
           <SortableContext
             items={tasks.map((t) => t._id.toString())}
@@ -169,6 +173,8 @@ export default function KanbanColumn({
             ))}
           </SortableContext>
         </div>
+        {/* Fade gradient to indicate more content */}
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[rgba(5,6,15,0.9)] to-transparent rounded-b-[26px]" />
       </div>
     </div>
   );
